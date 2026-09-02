@@ -199,12 +199,14 @@
 
         <!-- Altitud / Presión Atmosférica del Sitio -->
         <div>
-          <label class="text-xs font-semibold text-zinc-400">Presión Atmosférica del Sitio de Ensayo</label>
-          <select id="pAtmSelect" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white">
-            <option value="1013.25" selected>Nivel del mar (1013.25 mbar - Condiciones Estándar)</option>
-            <option value="850.0">Altitud Media (~850 mbar / ~1500 msnm)</option>
-            <option value="750.0">Altitud Elevada (~750 mbar / ~2600 msnm)</option>
-          </select>
+          <label class="text-xs font-semibold text-zinc-400">Presión Atmosférica del Sitio de Ensayo (mbar)</label>
+          <input type="number" id="pAtmSelect" value="1013.25" step="0.1" onchange="runSimulation()" oninput="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          <div class="flex flex-wrap gap-1.5 mt-1.5">
+            <button type="button" onclick="setPAtm(1013.25)" class="px-2 py-1 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Nivel del mar · 1013.25</button>
+            <button type="button" onclick="setPAtm(850.0)" class="px-2 py-1 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">~1500 msnm · 850</button>
+            <button type="button" onclick="setPAtm(750.0)" class="px-2 py-1 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">~2600 msnm · 750</button>
+          </div>
+          <p class="text-[10px] text-zinc-500 mt-1.5">Usa los botones solo como punto de partida — para comparar contra un ensayo real, ingresa la presión barométrica medida ese día, no el valor aproximado de altitud.</p>
         </div>
 
         <!-- Seleccionar Gas -->
@@ -297,6 +299,18 @@
         <div>
           <label class="text-xs font-semibold text-zinc-400">Potencia Térmica Nominal Declarada (kW)</label>
           <input type="number" id="declaredPower" value="2.00" step="0.05" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+        </div>
+
+        <!-- Factor de Corrección de Sitio (calibrado contra ensayos reales en Metrología) -->
+        <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-semibold text-zinc-300 block">Factor de Corrección de Sitio</span>
+            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real (calibrado en Metrología)</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="pcfDisplay" class="text-cyan-400 font-bold font-mono block">1.000</span>
+            <button type="button" onclick="resetPowerCorrection()" class="text-[10px] text-zinc-500 hover:text-rose-400 underline">restablecer</button>
+          </div>
         </div>
 
       </div>
@@ -526,7 +540,7 @@
     <!-- TAB 2: EQUIVALENCIA NEUMÁTICA (COLD TEST) -->
     <div id="tabAir" class="hidden bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 max-w-4xl mx-auto space-y-5">
       <h2 class="text-lg sm:text-xl font-bold text-cyan-400 flex items-center gap-2">💨 Módulo de Equivalencia Neumática (Chequeo con Aire)</h2>
-      <p class="text-xs sm:text-sm text-zinc-400">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real con gas.</p>
+      <p class="text-xs sm:text-sm text-zinc-400">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real con gas. Incluye la misma corrección de presión atmosférica del sitio (<span class="text-zinc-300 font-mono">pAtm</span>) configurada en el Simulador R&D, para ser consistente con esa pestaña.</p>
 
       <div class="bg-zinc-950/60 p-3 rounded-md border border-cyan-500/25">
         <label class="text-xs font-semibold text-cyan-300">Modo de Cálculo</label>
@@ -569,6 +583,10 @@
         <p class="text-xs sm:text-sm text-zinc-300">-&gt; Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-cyan-400 font-mono">0 kW</span></p>
         <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
         <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
+        <div id="rowAirApply" class="hidden pt-2">
+          <button onclick="applyCalibratedCd()" class="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all">Aplicar Diámetro y Cd juntos al Simulador</button>
+          <p class="text-[10px] text-zinc-500 mt-1.5">dInj y Cd vienen de la misma medición — se aplican como par para evitar inconsistencias.</p>
+        </div>
       </div>
     </div>
 
@@ -652,6 +670,61 @@
           </div>
           <button onclick="applyCalibratedKc()" id="kcApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all">Usar este Kc en el Simulador</button>
         </div>
+      </div>
+
+      <!-- FACTOR DE CORRECCIÓN DE POTENCIA: PREDICHO (SIMULADOR) VS. REAL (ENSAYO) -->
+      <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-cyan-500/30 space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">📐 Factor de Corrección de Potencia (Predicho vs. Real)</h3>
+          <p class="text-[11px] text-zinc-500 mt-1.5">En vez de modelar cada efecto individual (enfriamiento Joule-Thomson del gas, transferibilidad de Cd aire→gas, variación barométrica), calibra directamente la brecha completa contra tus ensayos reales de combustión. Ingresa pares (Potencia Predicha por el Simulador / Potencia Real Medida) de tus ensayos.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800 sm:col-span-1">
+            <span class="text-[11px] text-zinc-500 block font-medium mb-1">Ensayo 1</span>
+            <label class="text-[10px] text-zinc-500">Predicha (kW)</label>
+            <input type="number" id="pcfPred1" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            <label class="text-[10px] text-zinc-500 mt-1.5 block">Real (kW)</label>
+            <input type="number" id="pcfReal1" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800 sm:col-span-1">
+            <span class="text-[11px] text-zinc-500 block font-medium mb-1">Ensayo 2</span>
+            <label class="text-[10px] text-zinc-500">Predicha (kW)</label>
+            <input type="number" id="pcfPred2" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            <label class="text-[10px] text-zinc-500 mt-1.5 block">Real (kW)</label>
+            <input type="number" id="pcfReal2" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800 sm:col-span-1">
+            <span class="text-[11px] text-zinc-500 block font-medium mb-1">Ensayo 3</span>
+            <label class="text-[10px] text-zinc-500">Predicha (kW)</label>
+            <input type="number" id="pcfPred3" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            <label class="text-[10px] text-zinc-500 mt-1.5 block">Real (kW)</label>
+            <input type="number" id="pcfReal3" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-[11px] border-collapse">
+            <thead>
+              <tr class="text-zinc-500 border-b border-zinc-800">
+                <th class="text-left py-1.5 font-sans font-semibold">Ensayo</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Predicha</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Real</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Factor (Real/Predicha)</th>
+              </tr>
+            </thead>
+            <tbody id="pcfCalibBody" class="font-mono"></tbody>
+          </table>
+        </div>
+
+        <div class="bg-zinc-950 p-3.5 rounded-md border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] text-zinc-500 block font-medium">Factor Promedio Calibrado</span>
+            <span id="pcfCalibAvg" class="text-lg font-bold text-emerald-400 font-mono">—</span>
+          </div>
+          <button onclick="applyPowerCorrection()" id="pcfApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all">Aplicar Factor en el Simulador</button>
+        </div>
+        <p class="text-[10px] text-zinc-500">El factor calibrado se aplica solo a la potencia mostrada (Simulador, curva de sensibilidad y DoE); no altera λ, CO ni la evaluación de estabilidad de llama, porque esos ya se calibran por separado.</p>
       </div>
     </div>
 
@@ -773,6 +846,7 @@
           <p id="ieeeClosedBurnerNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1">
             Nota: el coeficiente de arrastre (Kc) empleado para la arquitectura cerrada es un valor teórico inicial, pendiente de calibración con datos experimentales de banco de pruebas.
           </p>
+          <p id="ieeePowerCorrectionNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1"></p>
         </section>
 
         <!-- IV. DISCUSIÓN -->
@@ -806,6 +880,12 @@
 
     let powerChart = null;
     let ovenChart = null;
+    // Factor de corrección de sitio: escala la potencia predicha para acercarla
+    // a la medida en ensayo real. Se calibra en la pestaña Metrología a partir
+    // de pares (potencia predicha, potencia real medida) y se aplica solo a la
+    // potencia mostrada -- no toca lambda, CO ni estabilidad de llama, que ya
+    // se calibran por separado (Kc, Cd, etc.).
+    let powerCorrectionFactor = 1.0;
 
     function initChart() {
       const ctx = document.getElementById('chartPower').getContext('2d');
@@ -928,7 +1008,7 @@
       const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
       const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
       const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
-      const powerKw = qStdM3H * gas.pcs;
+      const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
       const { rVol } = computeEntrainment(burnerType, gas, dInj, dThroat, lTube, kc);
       const lambdaPrim = rVol / gas.stoich;
@@ -1033,7 +1113,7 @@
         const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
         const vIdealStd = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr));
         const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
-        const pKw = qStdM3H * gas.pcs;
+        const pKw = qStdM3H * gas.pcs * powerCorrectionFactor;
         powers.push(pKw.toFixed(2));
         upper.push((pDecl * 1.08).toFixed(2));
         lower.push((pDecl * 0.92).toFixed(2));
@@ -1087,7 +1167,7 @@
           const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
           const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
           const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
-          const powerKw = qStdM3H * gas.pcs;
+          const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
           const { rVol } = computeEntrainment(burnerType, gas, dInj, dThroat, lTube, kc);
           const lambdaPrim = rVol / gas.stoich;
@@ -1201,6 +1281,7 @@
       document.getElementById('fieldAirDInj').classList.toggle('hidden', mode !== 'cd');
       document.getElementById('rowAirDEff').classList.toggle('hidden', mode !== 'deff');
       document.getElementById('rowAirCd').classList.toggle('hidden', mode !== 'cd');
+      document.getElementById('rowAirApply').classList.toggle('hidden', mode !== 'cd');
       runAirEquivalence();
     }
 
@@ -1208,29 +1289,59 @@
       const qAir = parseFloat(document.getElementById('airQ').value);
       const pAir = parseFloat(document.getElementById('airP').value);
       const pGas = parseFloat(document.getElementById('gasP').value);
+      const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
       const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
       const gas = GASES[gasKey];
       const mode = document.getElementById('airCalcMode').value;
 
-      const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir);
+      // Misma corrección de presión atmosférica (pressRatio) que usa
+      // runSimulation(), aplicada simétricamente al ensayo de aire y al de
+      // gas, para que ambas pestañas describan el mismo fenómeno físico de
+      // forma consistente en vez de con fórmulas desincronizadas.
+      const pressRatioGas = (pAtm + pGas) / 1013.25;
+      const pressRatioAir = (pAtm + pAir) / 1013.25;
+      const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (pressRatioGas / pressRatioAir);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
 
       document.getElementById('airQGas').innerText = qGasEst.toFixed(1) + " L/h";
       document.getElementById('airPGas').innerText = pGasEst.toFixed(2) + " kW";
 
       if (mode === 'cd') {
-        // Cd = Q_medido / (A_inj · v_ideal) -- despeje directo de la misma
-        // ecuación de descarga, con el diámetro real ya medido (galgas de
-        // pasador) en vez de asumir Cd = 0.90.
+        // Cd = Q_medido / (A_inj · v_ideal · pressRatio) -- despeje directo de
+        // la misma ecuación de descarga (incluyendo la corrección atmosférica
+        // pressRatio, igual que en runSimulation()), con el diámetro real ya
+        // medido (galgas de pasador) en vez de asumir Cd = 0.90.
         const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
         const areaInjKnown = (Math.PI / 4.0) * Math.pow(dInjKnown / 1000.0, 2);
         const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
-        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir);
+        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir * pressRatioAir);
         document.getElementById('airCdResult').innerText = cdCalc.toFixed(3);
       } else {
-        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * Math.sqrt(2.0 * pAir * 100.0 / 1.225))) * 4.0 / Math.PI) * 1000.0;
+        const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
+        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * vIdealAir * pressRatioAir)) * 4.0 / Math.PI) * 1000.0;
         document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
       }
+    }
+
+    // dInj y Cd provienen de la MISMA medición de caudal de aire, por lo que
+    // deben aplicarse siempre como par: si se actualiza solo uno de los dos
+    // en el Simulador, el resultado queda matemáticamente inconsistente
+    // (el área ya no coincide con el Cd calculado para esa área).
+    function applyCalibratedCd() {
+      const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
+      const cdText = document.getElementById('airCdResult').innerText;
+      const cdCalc = parseFloat(cdText);
+      if (isNaN(dInjKnown) || isNaN(cdCalc)) return;
+
+      const dInjSlider = document.getElementById('dInj');
+      const cdSlider = document.getElementById('cd');
+      const dInjClamped = Math.min(Math.max(dInjKnown, parseFloat(dInjSlider.min)), parseFloat(dInjSlider.max));
+      const cdClamped = Math.min(Math.max(cdCalc, parseFloat(cdSlider.min)), parseFloat(cdSlider.max));
+
+      dInjSlider.value = dInjClamped;
+      cdSlider.value = cdClamped;
+      runSimulation();
+      switchTab('sim');
     }
 
     function runMetrology() {
@@ -1337,6 +1448,80 @@
       switchTab('sim');
     }
 
+    function setPAtm(val) {
+      document.getElementById('pAtmSelect').value = val;
+      runSimulation();
+    }
+
+    function updatePcfDisplay() {
+      const el = document.getElementById('pcfDisplay');
+      if (!el) return;
+      el.innerText = powerCorrectionFactor.toFixed(3);
+    }
+
+    function resetPowerCorrection() {
+      powerCorrectionFactor = 1.0;
+      updatePcfDisplay();
+      runSimulation();
+    }
+
+    // ==========================================================
+    // FACTOR DE CORRECCIÓN DE POTENCIA: PREDICHO (SIMULADOR) VS. REAL (ENSAYO)
+    // ==========================================================
+    // En vez de modelar cada efecto residual por separado (enfriamiento
+    // Joule-Thomson del gas real al expandirse, transferibilidad del Cd
+    // entre aire y gas, variación barométrica día a día), se calibra
+    // directamente la razón Real/Predicha con datos de ensayos de
+    // combustión reales -- el mismo principio que ya se usa para Kc.
+    function runPowerCorrectionCalc() {
+      const rows = [
+        { predId: 'pcfPred1', realId: 'pcfReal1', label: 'Ensayo 1' },
+        { predId: 'pcfPred2', realId: 'pcfReal2', label: 'Ensayo 2' },
+        { predId: 'pcfPred3', realId: 'pcfReal3', label: 'Ensayo 3' },
+      ];
+
+      let bodyHtml = '';
+      const validFactors = [];
+
+      rows.forEach(row => {
+        const predRaw = document.getElementById(row.predId).value;
+        const realRaw = document.getElementById(row.realId).value;
+        const pred = parseFloat(predRaw);
+        const real = parseFloat(realRaw);
+        if (predRaw === '' || realRaw === '' || isNaN(pred) || isNaN(real) || pred <= 0) {
+          bodyHtml += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-400">' + row.label + '</td><td class="text-right text-zinc-600">—</td><td class="text-right text-zinc-600">—</td><td class="text-right text-zinc-600">—</td></tr>';
+          return;
+        }
+        const factor = real / pred;
+        validFactors.push(factor);
+        bodyHtml += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + row.label + '</td><td class="text-right text-cyan-400">' + pred.toFixed(2) + '</td><td class="text-right text-zinc-300">' + real.toFixed(2) + '</td><td class="text-right text-emerald-400">' + factor.toFixed(3) + '</td></tr>';
+      });
+
+      document.getElementById('pcfCalibBody').innerHTML = bodyHtml;
+
+      const avgEl = document.getElementById('pcfCalibAvg');
+      const applyBtn = document.getElementById('pcfApplyBtn');
+      if (validFactors.length > 0) {
+        const avg = validFactors.reduce((a, b) => a + b, 0) / validFactors.length;
+        avgEl.innerText = avg.toFixed(3) + ' (n=' + validFactors.length + ')';
+        applyBtn.disabled = false;
+        applyBtn.dataset.pcfValue = avg.toFixed(4);
+      } else {
+        avgEl.innerText = '—';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.pcfValue;
+      }
+    }
+
+    function applyPowerCorrection() {
+      const btn = document.getElementById('pcfApplyBtn');
+      const val = btn.dataset.pcfValue;
+      if (!val) return;
+      powerCorrectionFactor = parseFloat(val);
+      updatePcfDisplay();
+      switchTab('sim');
+    }
+
     function generateIEEEReport() {
       const burnerType = getBurnerType();
       const pNom = document.getElementById('resPower').innerText;
@@ -1359,6 +1544,13 @@
         : methodologyBase + " (Arquitectura abierta: el arrastre incluye la pérdida de carga por fricción en el tubo mezclador según su longitud)."
 
       document.getElementById('ieeeClosedBurnerNote').classList.toggle('hidden', burnerType !== 'cerrado');
+
+      const pcfNote = document.getElementById('ieeePowerCorrectionNote');
+      const pcfActive = Math.abs(powerCorrectionFactor - 1.0) > 0.001;
+      pcfNote.classList.toggle('hidden', !pcfActive);
+      if (pcfActive) {
+        pcfNote.innerText = "Nota: la potencia reportada incluye un factor de corrección de sitio de " + powerCorrectionFactor.toFixed(3) + ", calibrado a partir de ensayos reales de combustión (Predicho × Factor ≈ Real), para compensar efectos no modelados explícitamente (enfriamiento del gas al expandirse, variación barométrica, transferibilidad del coeficiente de descarga entre aire y gas real).";
+      }
 
       document.getElementById('ieeeReportModal').classList.remove('hidden');
     }
@@ -1409,11 +1601,13 @@
         document.getElementById('btnTabMet').className = active;
         runMetrology();
         runKcCalibration();
+        runPowerCorrectionCalc();
       }
     }
 
     window.onload = function() {
       initChart();
+      updatePcfDisplay();
       onBurnerTypeChange();
     };
   </script>
