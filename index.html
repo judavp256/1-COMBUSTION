@@ -528,14 +528,27 @@
       <h2 class="text-lg sm:text-xl font-bold text-cyan-400 flex items-center gap-2">💨 Módulo de Equivalencia Neumática (Chequeo con Aire)</h2>
       <p class="text-xs sm:text-sm text-zinc-400">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real con gas.</p>
 
+      <div class="bg-zinc-950/60 p-3 rounded-md border border-cyan-500/25">
+        <label class="text-xs font-semibold text-cyan-300">Modo de Cálculo</label>
+        <select id="airCalcMode" onchange="onAirModeChange()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white">
+          <option value="deff" selected>Conozco Cd (0.90 asumido) → calcular Diámetro Efectivo</option>
+          <option value="cd">Conozco el diámetro real medido → calcular Coeficiente de Descarga (Cd)</option>
+        </select>
+        <p class="text-[10px] text-zinc-500 mt-1.5">Si ya mediste el diámetro del inyector con precisión (galgas de pasador), usa el segundo modo: es el camino más directo para obtener Cd a partir del caudal de aire con descarga a la atmósfera.</p>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-zinc-400">Caudal de Aire Medido en Banco Frío (L/h)</label>
           <input type="number" id="airQ" value="140.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
-          <label class="text-xs text-zinc-400">Presión de Ensayo en Banco de Aire (mbar)</label>
+          <label class="text-xs text-zinc-400">Presión de Ensayo / Descarga a Atmósfera (mbar)</label>
           <input type="number" id="airP" value="10.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+        </div>
+        <div id="fieldAirDInj" class="hidden">
+          <label class="text-xs text-zinc-400">Diámetro del Inyector Medido (mm)</label>
+          <input type="number" id="airDInjKnown" value="1.15" step="0.01" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
           <label class="text-xs text-zinc-400">Presión Nominal del Gas en Producto (mbar)</label>
@@ -554,7 +567,8 @@
         <h3 class="text-xs font-bold font-mono tracking-wide text-cyan-300">Resultados de Predicción Neumática:</h3>
         <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Gas Estimado: <span id="airQGas" class="font-bold text-emerald-400 font-mono">0 L/h</span></p>
         <p class="text-xs sm:text-sm text-zinc-300">-&gt; Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-cyan-400 font-mono">0 kW</span></p>
-        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado: <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
+        <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
+        <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
       </div>
     </div>
 
@@ -1182,20 +1196,41 @@
       ovenChart.update();
     }
 
+    function onAirModeChange() {
+      const mode = document.getElementById('airCalcMode').value;
+      document.getElementById('fieldAirDInj').classList.toggle('hidden', mode !== 'cd');
+      document.getElementById('rowAirDEff').classList.toggle('hidden', mode !== 'deff');
+      document.getElementById('rowAirCd').classList.toggle('hidden', mode !== 'cd');
+      runAirEquivalence();
+    }
+
     function runAirEquivalence() {
       const qAir = parseFloat(document.getElementById('airQ').value);
       const pAir = parseFloat(document.getElementById('airP').value);
       const pGas = parseFloat(document.getElementById('gasP').value);
       const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
       const gas = GASES[gasKey];
+      const mode = document.getElementById('airCalcMode').value;
 
       const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
-      const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * Math.sqrt(2.0 * pAir * 100.0 / 1.225))) * 4.0 / Math.PI) * 1000.0;
 
       document.getElementById('airQGas').innerText = qGasEst.toFixed(1) + " L/h";
       document.getElementById('airPGas').innerText = pGasEst.toFixed(2) + " kW";
-      document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
+
+      if (mode === 'cd') {
+        // Cd = Q_medido / (A_inj · v_ideal) -- despeje directo de la misma
+        // ecuación de descarga, con el diámetro real ya medido (galgas de
+        // pasador) en vez de asumir Cd = 0.90.
+        const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
+        const areaInjKnown = (Math.PI / 4.0) * Math.pow(dInjKnown / 1000.0, 2);
+        const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
+        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir);
+        document.getElementById('airCdResult').innerText = cdCalc.toFixed(3);
+      } else {
+        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * Math.sqrt(2.0 * pAir * 100.0 / 1.225))) * 4.0 / Math.PI) * 1000.0;
+        document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
+      }
     }
 
     function runMetrology() {
@@ -1384,3 +1419,5 @@
   </script>
 </body>
 </html>
+
+
