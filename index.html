@@ -25,6 +25,12 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* Evita que los <select>/<option> nativos del navegador se rendericen
+       en blanco por defecto sobre una interfaz oscura */
+    html {
+      color-scheme: dark;
+    }
+
     /* OPTIMIZACIÓN TÁCTIL PARA MÓVILES Y TABLETS */
     html, body {
       touch-action: manipulation;
@@ -588,16 +594,16 @@
   <!-- MODAL / CONTENEDOR DE REPORTE FORMATO IEEE PARA IMPRESIÓN / PDF -->
   <div id="ieeeReportModal" class="hidden fixed inset-0 bg-zinc-950/95 z-50 overflow-y-auto p-3 sm:p-10 text-slate-900 font-serif">
     
-    <div class="max-w-4xl mx-auto bg-white p-5 sm:p-12 shadow-2xl rounded-sm border border-slate-300 relative text-black text-xs leading-relaxed">
+    <div class="max-w-4xl mx-auto bg-zinc-900 print:bg-white p-5 sm:p-12 shadow-2xl rounded-sm border border-zinc-800 print:border-slate-300 relative text-zinc-100 print:text-black text-xs leading-relaxed">
       
       <!-- BOTONES DE ACCIÓN EN EL MODAL -->
       <div class="no-print absolute top-3 right-3 flex gap-2">
         <button onclick="window.print()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-sans text-xs font-bold rounded shadow">🖨️ Imprimir / PDF (IEEE)</button>
-        <button onclick="closeIEEEReport()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-sans text-xs font-bold rounded">✕ Cerrar</button>
+        <button onclick="closeIEEEReport()" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-sans text-xs font-bold rounded">✕ Cerrar</button>
       </div>
 
       <!-- ENCABEZADO IEEE -->
-      <div class="flex justify-between items-center text-[10px] text-slate-500 border-b border-slate-300 pb-2 mb-6 font-sans">
+      <div class="flex justify-between items-center text-[10px] text-zinc-500 print:text-slate-500 border-b border-zinc-800 print:border-slate-300 pb-2 mb-6 font-sans">
         <span>INFORME TÉCNICO DE LABORATORIO DE COMBUSTIÓN</span>
         <span class="hidden sm:inline">NORMATIVA NTC 2832-1 / NTC 2832-2</span>
         <span id="ieeePageNum">PÁGINA 1</span>
@@ -605,16 +611,16 @@
 
       <!-- TÍTULO DEL ARTÍCULO IEEE -->
       <div class="text-center mb-6 space-y-2">
-        <h1 id="ieeeTitle" class="text-lg sm:text-xl font-bold font-sans tracking-tight text-black">
+        <h1 id="ieeeTitle" class="text-lg sm:text-xl font-bold font-sans tracking-tight text-zinc-50 print:text-black">
           Dictamen Técnico de Evaluación Físico-Matemática y Certificación Normativa de Sistema de Combustión para Gasodomésticos
         </h1>
-        <p id="ieeeAuthor" class="text-[11px] italic font-sans text-slate-700">
+        <p id="ieeeAuthor" class="text-[11px] italic font-sans text-zinc-400 print:text-slate-700">
           Laboratorio Acreditado de Ensayo y Calibración (ISO/IEC 17025)
         </p>
       </div>
 
       <!-- RESUMEN / ABSTRACT IEEE -->
-      <div class="bg-slate-50 p-3.5 sm:p-4 border-t border-b border-slate-300 mb-6 font-serif">
+      <div class="bg-zinc-950 print:bg-slate-50 p-3.5 sm:p-4 border-t border-b border-zinc-800 print:border-slate-300 mb-6 font-serif">
         <p class="text-justify italic">
           <strong class="font-bold font-sans not-italic">Resumen –</strong> <span id="ieeeAbstract">Este documento presenta el análisis técnico y la evaluación de conformidad del sistema de combustión según la norma NTC 2832-1 y NTC 2832-2. A través de la simulación de fluidos y termodinámica de premezcla parcial, se determinan la potencia nominal, la tasa de aireación primaria, las emisiones de CO neutro y el rendimiento térmico. Los resultados validan que la configuración actual cumple satisfactoriamente con la banda de tolerancia legal del ±8% y los límites de higiene de combustión.</span>
         </p>
@@ -625,7 +631,7 @@
         
         <!-- I. INTRODUCCIÓN -->
         <section class="break-inside-avoid">
-          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">I. INTRODUCCIÓN</h2>
+          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">I. INTRODUCCIÓN</h2>
           <p>
             El presente informe documenta la evaluación técnica realizada sobre un quemador atmosférico de premezcla parcial para gasodomésticos (cocinas, cubiertas y hornos). El objetivo principal es diagnosticar el comportamiento térmico y de emisiones ante variaciones de presión de suministro y diámetro del inyector, verificando el cumplimiento de la norma NTC 2832-1.
           </p>
@@ -633,11 +639,11 @@
 
         <!-- II. METODOLOGÍA -->
         <section class="break-inside-avoid">
-          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">II. METODOLOGÍA Y MODELADO FÍSICO</h2>
+          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">II. METODOLOGÍA Y MODELADO FÍSICO</h2>
           <p id="ieeeMethodologyText">
             El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:
           </p>
-          <div class="my-2 p-2 bg-slate-100 text-center font-mono text-[9px] sm:text-[10px] rounded overflow-x-auto">
+          <div class="my-2 p-2 bg-zinc-950 print:bg-slate-100 text-center font-mono text-[9px] sm:text-[10px] rounded overflow-x-auto">
             Q* = A · Cd · √(2p / (ρ_aire · d)) · (T*/T) · (Patm + p / P*)
           </div>
           <p>
@@ -647,7 +653,7 @@
 
         <!-- III. RESULTADOS -->
         <section class="break-inside-avoid">
-          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">III. RESULTADOS Y CUMPLIMIENTO NORMATIVO</h2>
+          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">III. RESULTADOS Y CUMPLIMIENTO NORMATIVO</h2>
           <p id="ieeeResultsText">
             En la Tabla 1 se exponen los parámetros medidos y calculados durante la evaluación del sistema de combustión a condiciones nominales de ensayo.
           </p>
@@ -655,9 +661,9 @@
           <!-- TABLA ESTILO IEEE -->
           <div class="my-3 overflow-x-auto">
             <div class="text-[10px] font-sans font-bold text-center mb-1">Tabla 1. Evaluación de parámetros normativos NTC 2832-1.</div>
-            <table class="w-full text-[10px] font-sans border-t-2 border-b-2 border-black border-collapse min-w-[260px]">
+            <table class="w-full text-[10px] font-sans border-t-2 border-b-2 border-zinc-500 print:border-black border-collapse min-w-[260px]">
               <thead>
-                <tr class="border-b border-black">
+                <tr class="border-b border-zinc-500 print:border-black">
                   <th class="py-1 text-left">Parámetro</th>
                   <th class="py-1 text-center">Valor</th>
                   <th class="py-1 text-center">Límite NTC</th>
@@ -665,47 +671,47 @@
                 </tr>
               </thead>
               <tbody id="ieeeTableBody">
-                <tr class="border-b border-slate-200">
+                <tr class="border-b border-zinc-800 print:border-slate-200">
                   <td class="py-1">Arquitectura de Quemador</td>
                   <td class="py-1 text-center font-bold" id="repBurnerType">Abierto</td>
                   <td class="py-1 text-center">Informativo</td>
-                  <td class="py-1 text-right text-slate-600 font-bold">N/A</td>
+                  <td class="py-1 text-right text-zinc-400 print:text-slate-600 font-bold">N/A</td>
                 </tr>
-                <tr class="border-b border-slate-200">
+                <tr class="border-b border-zinc-800 print:border-slate-200">
                   <td class="py-1">Potencia Nominal</td>
                   <td class="py-1 text-center font-bold" id="repPower">2.12 kW</td>
                   <td class="py-1 text-center">± 8.0%</td>
-                  <td class="py-1 text-right text-emerald-700 font-bold" id="repPowerPass">CUMPLE</td>
+                  <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repPowerPass">CUMPLE</td>
                 </tr>
-                <tr class="border-b border-slate-200">
+                <tr class="border-b border-zinc-800 print:border-slate-200">
                   <td class="py-1">Emisión CO Neutro</td>
                   <td class="py-1 text-center font-bold" id="repCO">185 ppm</td>
                   <td class="py-1 text-center">≤ 1000 ppm</td>
-                  <td class="py-1 text-right text-emerald-700 font-bold" id="repCOPass">CUMPLE</td>
+                  <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repCOPass">CUMPLE</td>
                 </tr>
-                <tr class="border-b border-slate-200">
+                <tr class="border-b border-zinc-800 print:border-slate-200">
                   <td class="py-1">Rendimiento Térmico</td>
                   <td class="py-1 text-center font-bold" id="repEff">58.2 %</td>
                   <td class="py-1 text-center">≥ 52.0%</td>
-                  <td class="py-1 text-right text-emerald-700 font-bold" id="repEffPass">CUMPLE</td>
+                  <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repEffPass">CUMPLE</td>
                 </tr>
                 <tr>
                   <td class="py-1">Estabilidad Llama</td>
                   <td class="py-1 text-center font-bold" id="repFlame">Azul Estable</td>
                   <td class="py-1 text-center">Sin soplado/retorno</td>
-                  <td class="py-1 text-right text-emerald-700 font-bold" id="repFlamePass">CUMPLE</td>
+                  <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repFlamePass">CUMPLE</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p id="ieeeClosedBurnerNote" class="hidden text-[10px] italic text-slate-600 mt-1">
+          <p id="ieeeClosedBurnerNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1">
             Nota: el coeficiente de arrastre (Kc) empleado para la arquitectura cerrada es un valor teórico inicial, pendiente de calibración con datos experimentales de banco de pruebas.
           </p>
         </section>
 
         <!-- IV. DISCUSIÓN -->
         <section class="break-inside-avoid">
-          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">IV. DISCUSIÓN DE RESULTADOS</h2>
+          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">IV. DISCUSIÓN DE RESULTADOS</h2>
           <p id="ieeeDiscussion">
             La potencia térmica calculada presenta una desviación acorde a la especificación nominal. El exceso de aire primario garantiza una combustión limpia eliminando el riesgo de puntas amarillas y depósitos de hollín.
           </p>
@@ -713,7 +719,7 @@
 
         <!-- V. CONCLUSIONES -->
         <section class="break-inside-avoid">
-          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">V. CONCLUSIONES Y DICTAMEN</h2>
+          <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">V. CONCLUSIONES Y DICTAMEN</h2>
           <p id="ieeeConclusion">
             El producto evaluado cumple satisfactoriamente con los requisitos de aptitud funcional, higiene de combustión y eficiencia energética exigidos por la norma NTC 2832-1. Se autoriza su conformidad técnica para emisión de placa de características.
           </p>
@@ -1229,4 +1235,3 @@
   </script>
 </body>
 </html>
-
