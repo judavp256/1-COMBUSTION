@@ -588,6 +588,57 @@
         <p class="text-xs sm:text-sm text-zinc-300">Se recomienda declarar una Potencia Nominal de: <span id="metRecLabel" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono">0 kW</span></p>
         <p class="text-xs text-zinc-500 mt-1">Banda de Tolerancia Permisible NTC 2832-1 (±8%): <span id="metBand" class="font-mono">0 - 0 kW</span></p>
       </div>
+
+      <!-- CALIBRACIÓN DE Kc (QUEMADOR CERRADO) A PARTIR DE CO MEDIDO -->
+      <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-amber-500/30 space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">🧮 Calibración de Kc (Quemador Cerrado) a partir de CO Medido</h3>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Despeja Kc invirtiendo la relación CO ↔ λ_primario del modelo, gas por gas. ⚠️ Solo es preciso cuando λ_primario &lt; 0.55 (zona de aireación pobre); si tu quemador certifica correctamente, el CO probablemente esté "saturado" (el modelo no distingue λ=0.55 de λ=0.90) y ese punto se marcará como no confiable. Úsalo como referencia complementaria, prioriza medición directa de flujo cuando sea posible.</p>
+        </div>
+
+        <p class="text-[11px] text-zinc-500">Usa el Diámetro de Inyector, el Diámetro Efectivo de Garganta/Cámara de Mezcla y la Distancia al Recipiente configurados actualmente en la pestaña <span class="text-zinc-300 font-semibold">Simulador R&D</span>.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800">
+            <label class="text-[11px] text-zinc-400 block font-medium">CO Medido — G20 Natural (ppm)</label>
+            <input type="number" id="kcCoG20" placeholder="ej. 620" oninput="runKcCalibration()" class="w-full mt-1 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800">
+            <label class="text-[11px] text-zinc-400 block font-medium">CO Medido — G23 Inertes (ppm)</label>
+            <input type="number" id="kcCoG23" placeholder="ej. 540" oninput="runKcCalibration()" class="w-full mt-1 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800">
+            <label class="text-[11px] text-zinc-400 block font-medium">CO Medido — G30 Butano (ppm)</label>
+            <input type="number" id="kcCoG30" placeholder="ej. 480" oninput="runKcCalibration()" class="w-full mt-1 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800">
+            <label class="text-[11px] text-zinc-400 block font-medium">CO Medido — G31 Propano (ppm)</label>
+            <input type="number" id="kcCoG31" placeholder="ej. 510" oninput="runKcCalibration()" class="w-full mt-1 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-[11px] border-collapse">
+            <thead>
+              <tr class="text-zinc-500 border-b border-zinc-800">
+                <th class="text-left py-1.5 font-sans font-semibold">Gas</th>
+                <th class="text-right py-1.5 font-sans font-semibold">λ estimado</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Kc despejado</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="kcCalibBody" class="font-mono"></tbody>
+          </table>
+        </div>
+
+        <div class="bg-zinc-950 p-3.5 rounded-md border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] text-zinc-500 block font-medium">Kc Promedio (solo puntos válidos, no saturados)</span>
+            <span id="kcCalibAvg" class="text-lg font-bold text-emerald-400 font-mono">—</span>
+          </div>
+          <button onclick="applyCalibratedKc()" id="kcApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all">Usar este Kc en el Simulador</button>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -1166,6 +1217,91 @@
       document.getElementById('metBand').innerText = (recLabel * 0.92).toFixed(2) + " kW - " + (recLabel * 1.08).toFixed(2) + " kW";
     }
 
+    // ==========================================================
+    // CALIBRACIÓN DE Kc (QUEMADOR CERRADO) A PARTIR DE CO MEDIDO
+    // ==========================================================
+    // Invierte la relación CO <-> lambda_primario que ya usa runSimulation()
+    // (mismo hFactor por distancia y mismo mixPenalty=1.15 de arquitectura
+    // cerrada) para despejar el lambda real y, de ahí, el Kc geométrico.
+    // Válido únicamente si lambdaPen_medido < 1 (es decir, lambda < 0.55):
+    // por encima de ese umbral el modelo satura el CO y no permite
+    // distinguir un lambda único, así que ese punto se marca como no
+    // confiable en vez de forzar un resultado engañoso.
+    function estimateKcFromCO(coPpm, gas, dInj, dThroat, hFactor) {
+      const mixPenalty = 1.15; // fijo, igual que en runSimulation() para arquitectura cerrada
+      if (!isFinite(coPpm) || coPpm <= 0) return null;
+      const lambdaPenMeasured = coPpm / (180.0 * hFactor * mixPenalty);
+      if (lambdaPenMeasured >= 1.0) {
+        return { lambda: null, kc: null, saturated: true };
+      }
+      const lambda = 0.55 / Math.pow(lambdaPenMeasured, 1.0 / 2.2);
+      const rVol = lambda * gas.stoich;
+      const rMass = rVol / gas.dr;
+      const kc = rMass / (Math.sqrt(1.0 / gas.dr) * (dThroat / dInj));
+      return { lambda, kc, saturated: false };
+    }
+
+    function runKcCalibration() {
+      const dInj = parseFloat(document.getElementById('dInj').value);
+      const dThroat = parseFloat(document.getElementById('dThroat').value);
+      const hPot = parseFloat(document.getElementById('hPot').value);
+      const hFactor = hPot < 18.0 ? Math.exp((18.0 - hPot) / 3.0) : 1.0;
+
+      const rows = [
+        { key: 'G20_GAS_NATURAL', inputId: 'kcCoG20', label: 'G20 Natural' },
+        { key: 'G23_GAS_NATURAL_ALTO_CO2', inputId: 'kcCoG23', label: 'G23 Inertes' },
+        { key: 'G30_BUTANO', inputId: 'kcCoG30', label: 'G30 Butano' },
+        { key: 'G31_PROPANO', inputId: 'kcCoG31', label: 'G31 Propano' },
+      ];
+
+      let bodyHtml = '';
+      const validKc = [];
+
+      rows.forEach(row => {
+        const raw = document.getElementById(row.inputId).value;
+        const coPpm = parseFloat(raw);
+        if (raw === '' || isNaN(coPpm)) {
+          bodyHtml += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-400">' + row.label + '</td><td class="text-right text-zinc-600">—</td><td class="text-right text-zinc-600">—</td><td class="text-right text-zinc-600 font-sans">Sin dato</td></tr>';
+          return;
+        }
+        const gas = GASES[row.key];
+        const result = estimateKcFromCO(coPpm, gas, dInj, dThroat, hFactor);
+        if (!result || result.saturated) {
+          bodyHtml += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + row.label + '</td><td class="text-right text-zinc-500">≥ 0.55</td><td class="text-right text-zinc-500">no distinguible</td><td class="text-right text-amber-400 font-sans">⚠️ Saturado</td></tr>';
+          return;
+        }
+        validKc.push(result.kc);
+        bodyHtml += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + row.label + '</td><td class="text-right text-cyan-400">' + result.lambda.toFixed(3) + '</td><td class="text-right text-emerald-400">' + result.kc.toFixed(3) + '</td><td class="text-right text-emerald-400 font-sans">✓ Válido</td></tr>';
+      });
+
+      document.getElementById('kcCalibBody').innerHTML = bodyHtml;
+
+      const avgEl = document.getElementById('kcCalibAvg');
+      const applyBtn = document.getElementById('kcApplyBtn');
+      if (validKc.length > 0) {
+        const avg = validKc.reduce((a, b) => a + b, 0) / validKc.length;
+        avgEl.innerText = avg.toFixed(3) + ' (n=' + validKc.length + ')';
+        applyBtn.disabled = false;
+        applyBtn.dataset.kcValue = avg.toFixed(2);
+      } else {
+        avgEl.innerText = '—';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.kcValue;
+      }
+    }
+
+    function applyCalibratedKc() {
+      const btn = document.getElementById('kcApplyBtn');
+      const val = btn.dataset.kcValue;
+      if (!val) return;
+      const kcInput = document.getElementById('kc');
+      const clamped = Math.min(Math.max(parseFloat(val), parseFloat(kcInput.min)), parseFloat(kcInput.max));
+      kcInput.value = clamped;
+      document.getElementById('burnerType').value = 'cerrado';
+      onBurnerTypeChange();
+      switchTab('sim');
+    }
+
     function generateIEEEReport() {
       const burnerType = getBurnerType();
       const pNom = document.getElementById('resPower').innerText;
@@ -1237,6 +1373,7 @@
         document.getElementById('tabMet').classList.remove('hidden');
         document.getElementById('btnTabMet').className = active;
         runMetrology();
+        runKcCalibration();
       }
     }
 
