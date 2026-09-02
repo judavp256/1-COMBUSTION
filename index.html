@@ -245,13 +245,14 @@
           <input type="range" id="cd" min="0.75" max="0.98" step="0.01" value="0.90" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Diámetro Garganta Venturi -->
+        <!-- Diámetro Garganta Venturi / Cámara de Mezcla -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-zinc-300">Diámetro de la Garganta del Venturi</span>
+            <span id="labelThroat" class="text-zinc-300">Diámetro de la Garganta del Venturi</span>
             <span id="valThroat" class="text-cyan-400 font-bold font-mono">12.0 mm</span>
           </div>
           <input type="range" id="dThroat" min="6.0" max="25.0" step="0.5" value="12.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
+          <p id="descThroat" class="text-[10px] text-zinc-500 mt-1.5">Diámetro de la garganta del venturi respecto al inyector: gobierna cuánto aire se induce por efecto jet-pump antes del tubo mezclador.</p>
         </div>
 
         <!-- Longitud del Tubo Mezclador (solo Abierto) -->
@@ -820,6 +821,17 @@
       const type = getBurnerType();
       document.getElementById('fieldLTube').classList.toggle('hidden', type !== 'abierto');
       document.getElementById('fieldKc').classList.toggle('hidden', type !== 'cerrado');
+
+      const labelThroat = document.getElementById('labelThroat');
+      const descThroat = document.getElementById('descThroat');
+      if (type === 'cerrado') {
+        labelThroat.innerText = "Diámetro Efectivo de la Cámara de Mezcla del Difusor";
+        descThroat.innerText = "Diámetro característico de la cámara de mezcla integrada en el difusor respecto al inyector: sigue gobernando el arrastre de aire (mismo rol que un venturi), pero aquí no hay un tubo venturi independiente.";
+      } else {
+        labelThroat.innerText = "Diámetro de la Garganta del Venturi";
+        descThroat.innerText = "Diámetro de la garganta del venturi respecto al inyector: gobierna cuánto aire se induce por efecto jet-pump antes del tubo mezclador.";
+      }
+
       runSimulation();
     }
 
