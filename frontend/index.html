@@ -2,21 +2,34 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Laboratorio Virtual de Combustión - NTC 2832-1 / NTC 2832-2</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* OPTIMIZACIÓN TÁCTIL PARA MÓVILES Y TABLETS */
+    html, body {
+      touch-action: manipulation;
+    }
     .slider-thumb::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: #2563eb;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
       cursor: pointer;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     /* ESTILOS DE IMPRESIÓN FORMATO ARTÍCULO IEEE */
@@ -47,44 +60,52 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-500 selection:text-white">
 
-  <!-- Header -->
-  <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-lg no-print">
-    <div class="max-w-7xl mx-auto flex justify-between items-center flex-wrap gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-blue-400 flex items-center gap-2">
-          🔥 Laboratorio Virtual de Combustión & Metrología
-        </h1>
-        <p class="text-xs text-slate-400">Simulación Físico-Matemática y Certificación Normativa NTC 2832-1 / NTC 2832-2</p>
+  <!-- Header Responsivo para PC, Móvil y Tablet -->
+  <header class="bg-slate-800 border-b border-slate-700 p-3 sm:p-4 shadow-lg no-print sticky top-0 z-40 backdrop-blur-md bg-slate-800/95">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-lg sm:text-2xl font-bold text-blue-400 flex items-center gap-2">
+            🔥 Laboratorio Virtual de Combustión
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-400">Simulación y Certificación Normativa NTC 2832-1 / NTC 2832-2</p>
+        </div>
+        <!-- Botón de Generar Reporte visible en barra móvil -->
+        <button onclick="generateIEEEReport()" class="md:hidden px-2.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 shadow">
+          <span>📄</span> IEEE
+        </button>
       </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <button id="btnTabSim" onclick="switchTab('sim')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white">Simulador R&D</button>
-        <button id="btnTabDoe" onclick="switchTab('doe')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">🎯 DoE & Ventana Segura</button>
-        <button id="btnTabWeaver" onclick="switchTab('weaver')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">🔀 Índices de Weaver</button>
-        <button id="btnTabOven" onclick="switchTab('oven')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">🍞 Hornos 1D</button>
-        <button id="btnTabAir" onclick="switchTab('air')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">Test Aire</button>
-        <button id="btnTabMet" onclick="switchTab('met')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">Metrología R&R</button>
-        <button onclick="generateIEEEReport()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 transition-all flex items-center gap-1.5 shadow-md ml-2">
+
+      <!-- Menú de Pestañas con Desplazamiento Horizontal en Celular -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 max-w-full border-t border-slate-700/50 md:border-none pt-2 md:pt-0">
+        <button id="btnTabSim" onclick="switchTab('sim')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all">Simulador R&D</button>
+        <button id="btnTabDoe" onclick="switchTab('doe')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">🎯 DoE Segura</button>
+        <button id="btnTabWeaver" onclick="switchTab('weaver')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">🔀 Weaver</button>
+        <button id="btnTabOven" onclick="switchTab('oven')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">🍞 Hornos 1D</button>
+        <button id="btnTabAir" onclick="switchTab('air')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">💨 Aire</button>
+        <button id="btnTabMet" onclick="switchTab('met')" class="shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">📊 Metrología</button>
+        <button onclick="generateIEEEReport()" class="hidden md:flex shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 transition-all items-center gap-1.5 shadow-md ml-1">
           <span>📄</span> Generar Reporte IEEE
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-6 no-print">
+  <main class="max-w-7xl mx-auto p-3 sm:p-6 no-print">
 
     <!-- TAB 1: SIMULADOR DE COMBUSTIÓN R&D -->
-    <div id="tabSim" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div id="tabSim" class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
       
       <!-- Panel de Controles (Izquierda) -->
-      <div class="lg:col-span-5 bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
-        <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">⚙️ Parámetros de Diseño y Sitio</h2>
+      <div class="lg:col-span-5 bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700 space-y-4 shadow-md">
+        <h2 class="text-base sm:text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">⚙️ Parámetros de Diseño y Sitio</h2>
         
         <!-- Altitud / Presión Atmosférica del Sitio -->
         <div>
           <label class="text-xs font-semibold text-slate-400">Presión Atmosférica del Sitio de Ensayo</label>
-          <select id="pAtmSelect" onchange="runSimulation()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <select id="pAtmSelect" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-slate-900 border border-slate-700 rounded-xl text-white">
             <option value="1013.25" selected>Nivel del mar (1013.25 mbar - Condiciones Estándar)</option>
             <option value="850.0">Altitud Media (~850 mbar / ~1500 msnm)</option>
             <option value="750.0">Altitud Elevada (~750 mbar / ~2600 msnm)</option>
@@ -94,7 +115,7 @@
         <!-- Seleccionar Gas -->
         <div>
           <label class="text-xs font-semibold text-slate-400">Familia y Tipo de Gas Combustible</label>
-          <select id="gasType" onchange="runSimulation()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <select id="gasType" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-slate-900 border border-slate-700 rounded-xl text-white">
             <option value="G20_GAS_NATURAL">Gas Natural Comercial (G20) - 18.0 mbar</option>
             <option value="G23_GAS_NATURAL_ALTO_CO2">Gas Natural Rico en Inertes (G23) - 20.0 mbar</option>
             <option value="G30_BUTANO">Butano Comercial (G30) - 29.0 mbar</option>
@@ -103,189 +124,195 @@
         </div>
 
         <!-- Diámetro Inyector -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Diámetro del Inyector</span>
-            <span id="valInj" class="text-blue-400">1.15 mm</span>
+            <span class="text-slate-300">Diámetro del Inyector</span>
+            <span id="valInj" class="text-blue-400 font-bold">1.15 mm</span>
           </div>
-          <input type="range" id="dInj" min="0.50" max="2.50" step="0.01" value="1.15" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="dInj" min="0.50" max="2.50" step="0.01" value="1.15" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Presión de Suministro -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Presión de Suministro de Gas</span>
-            <span id="valPres" class="text-blue-400">18.0 mbar</span>
+            <span class="text-slate-300">Presión de Suministro de Gas</span>
+            <span id="valPres" class="text-blue-400 font-bold">18.0 mbar</span>
           </div>
-          <input type="range" id="pSup" min="5.0" max="60.0" step="0.5" value="18.0" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="pSup" min="5.0" max="60.0" step="0.5" value="18.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Coeficiente de Descarga Cd -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Coeficiente de Descarga del Inyector</span>
-            <span id="valCd" class="text-blue-400">0.90</span>
+            <span class="text-slate-300">Coeficiente de Descarga del Inyector</span>
+            <span id="valCd" class="text-blue-400 font-bold">0.90</span>
           </div>
-          <input type="range" id="cd" min="0.75" max="0.98" step="0.01" value="0.90" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="cd" min="0.75" max="0.98" step="0.01" value="0.90" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Diámetro Garganta Venturi -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Diámetro de la Garganta del Tubo Venturi</span>
-            <span id="valThroat" class="text-blue-400">12.0 mm</span>
+            <span class="text-slate-300">Diámetro de la Garganta del Venturi</span>
+            <span id="valThroat" class="text-blue-400 font-bold">12.0 mm</span>
           </div>
-          <input type="range" id="dThroat" min="6.0" max="25.0" step="0.5" value="12.0" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="dThroat" min="6.0" max="25.0" step="0.5" value="12.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Área de Puertos -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Área Total de los Puertos de Combustión</span>
-            <span id="valPorts" class="text-blue-400">180 mm²</span>
+            <span class="text-slate-300">Área Total de los Puertos</span>
+            <span id="valPorts" class="text-blue-400 font-bold">180 mm²</span>
           </div>
-          <input type="range" id="aPorts" min="50" max="500" step="5" value="180" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="aPorts" min="50" max="500" step="5" value="180" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Altura Quemador - Recipiente -->
-        <div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
           <div class="flex justify-between text-xs font-semibold">
-            <span class="text-slate-400">Distancia del Quemador a la Base del Recipiente</span>
-            <span id="valHPot" class="text-blue-400">22.0 mm</span>
+            <span class="text-slate-300">Distancia del Quemador al Recipiente</span>
+            <span id="valHPot" class="text-blue-400 font-bold">22.0 mm</span>
           </div>
-          <input type="range" id="hPot" min="10.0" max="40.0" step="0.5" value="22.0" oninput="runSimulation()" class="w-full mt-2 slider-thumb">
+          <input type="range" id="hPot" min="10.0" max="40.0" step="0.5" value="22.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
         <!-- Potencia Declarada Target -->
         <div>
           <label class="text-xs font-semibold text-slate-400">Potencia Térmica Nominal Declarada (kW)</label>
-          <input type="number" id="declaredPower" value="2.00" step="0.05" onchange="runSimulation()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <input type="number" id="declaredPower" value="2.00" step="0.05" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-slate-900 border border-slate-700 rounded-xl text-white">
         </div>
 
       </div>
 
       <!-- Panel de Resultados y Visualización (Derecha) -->
-      <div class="lg:col-span-7 space-y-6">
+      <div class="lg:col-span-7 space-y-4 sm:space-y-6">
         
         <!-- Estado Normativo NTC 2832 -->
-        <div id="ntcCard" class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex justify-between items-center">
+        <div id="ntcCard" class="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/30 flex justify-between items-center shadow-md">
           <div>
-            <span class="text-xs uppercase font-bold tracking-wider text-emerald-400">Dictamen de Certificación NTC 2832-1</span>
-            <h3 id="ntcStatusText" class="text-xl font-extrabold text-emerald-300">CERTIFICACIÓN SIMULADA EXITOSA</h3>
+            <span class="text-[10px] sm:text-xs uppercase font-bold tracking-wider text-emerald-400">Dictamen NTC 2832-1</span>
+            <h3 id="ntcStatusText" class="text-base sm:text-xl font-extrabold text-emerald-300">CERTIFICACIÓN SIMULADA EXITOSA</h3>
           </div>
-          <div id="ntcBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 font-bold text-xl">✓</div>
+          <div id="ntcBadge" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 font-bold text-lg sm:text-xl shrink-0">✓</div>
         </div>
 
         <!-- Esquema Gráfico del Quemador y Llama (Canvas 2D) -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="text-sm font-bold text-slate-300"> Visualización Térmica de Llama & Arrastre de Aire</h3>
-            <span id="flameStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400">Llama Azul Estable</span>
+        <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700 shadow-md">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-300">🔥 Visualización Térmica de Llama & Arrastre de Aire</h3>
+            <span id="flameStatusBadge" class="self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-400">Llama Azul Estable</span>
           </div>
-          <canvas id="flameCanvas" width="600" height="180" class="w-full bg-slate-950 rounded-lg border border-slate-800"></canvas>
+          <div class="w-full overflow-hidden rounded-xl border border-slate-800">
+            <canvas id="flameCanvas" width="600" height="180" class="w-full bg-slate-950 block"></canvas>
+          </div>
         </div>
 
-        <!-- Indicadores Clave en Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-slate-400 block">Potencia Nominal</span>
-            <span id="resPower" class="text-xl font-bold text-blue-400">2.12 kW</span>
-            <span id="resPowerDiff" class="text-xs block text-slate-400">Desviación: +6.0%</span>
+        <!-- Indicadores Clave en Grid Adapta Móvil -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-slate-800 p-3.5 sm:p-4 rounded-xl border border-slate-700 shadow">
+            <span class="text-[11px] text-slate-400 block font-medium">Potencia Nominal</span>
+            <span id="resPower" class="text-lg sm:text-xl font-bold text-blue-400 block mt-0.5">2.12 kW</span>
+            <span id="resPowerDiff" class="text-[10px] sm:text-xs block text-slate-400 mt-0.5">Desviación: +6.0%</span>
           </div>
 
-          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-slate-400 block">Aire Primario</span>
-            <span id="resLambda" class="text-xl font-bold text-emerald-400">0.68</span>
-            <span class="text-xs block text-slate-400">Factor de Exceso (λ)</span>
+          <div class="bg-slate-800 p-3.5 sm:p-4 rounded-xl border border-slate-700 shadow">
+            <span class="text-[11px] text-slate-400 block font-medium">Aire Primario</span>
+            <span id="resLambda" class="text-lg sm:text-xl font-bold text-emerald-400 block mt-0.5">0.68</span>
+            <span class="text-[10px] sm:text-xs block text-slate-400 mt-0.5">Factor (λ)</span>
           </div>
 
-          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-slate-400 block">Emisión CO Neutro</span>
-            <span id="resCO" class="text-xl font-bold text-amber-400">185 ppm</span>
-            <span class="text-xs block text-slate-400">Límite: 1000 ppm</span>
+          <div class="bg-slate-800 p-3.5 sm:p-4 rounded-xl border border-slate-700 shadow">
+            <span class="text-[11px] text-slate-400 block font-medium">CO Neutro</span>
+            <span id="resCO" class="text-lg sm:text-xl font-bold text-amber-400 block mt-0.5">185 ppm</span>
+            <span class="text-[10px] sm:text-xs block text-slate-400 mt-0.5">Máx: 1000 ppm</span>
           </div>
 
-          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-slate-400 block">Rendimiento Térmico</span>
-            <span id="resEff" class="text-xl font-bold text-purple-400">58.2 %</span>
-            <span class="text-xs block text-slate-400">Mínimo: 52.0%</span>
+          <div class="bg-slate-800 p-3.5 sm:p-4 rounded-xl border border-slate-700 shadow">
+            <span class="text-[11px] text-slate-400 block font-medium">Rendimiento (η)</span>
+            <span id="resEff" class="text-lg sm:text-xl font-bold text-purple-400 block mt-0.5">58.2 %</span>
+            <span class="text-[10px] sm:text-xs block text-slate-400 mt-0.5">Mín: 52.0%</span>
           </div>
         </div>
 
         <!-- Gráfico de Sensibilidad de Potencia vs Presión -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <h3 class="text-sm font-bold text-slate-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión de Suministro (Tolerancia NTC ±8%)</h3>
-          <canvas id="chartPower" height="130"></canvas>
+        <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700 shadow-md">
+          <h3 class="text-xs sm:text-sm font-bold text-slate-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión (±8% NTC)</h3>
+          <div class="w-full relative">
+            <canvas id="chartPower" height="150"></canvas>
+          </div>
         </div>
 
       </div>
     </div>
 
     <!-- TAB 4: DoE VIRTUAL & VENTANA DE OPERACIÓN SEGURA -->
-    <div id="tabDoe" class="hidden space-y-6">
-      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
-        <div class="flex justify-between items-center flex-wrap gap-2">
+    <div id="tabDoe" class="hidden space-y-4 sm:space-y-6">
+      <div class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4 shadow-md">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h2 class="text-xl font-bold text-emerald-400 flex items-center gap-2">🎯 Ventana de Operación Segura & DoE Virtual</h2>
-            <p class="text-xs text-slate-300">Genera una matriz paramétrica de 625 combinaciones (Diámetro del Inyector vs Presión de Suministro) para ubicar la Zona Verde de cumplimiento.</p>
+            <h2 class="text-lg sm:text-xl font-bold text-emerald-400 flex items-center gap-2">🎯 Ventana de Operación Segura & DoE Virtual</h2>
+            <p class="text-xs text-slate-300">Exploración matricial de 625 combinaciones para ubicar la Zona Verde de cumplimiento NTC 2832.</p>
           </div>
-          <button onclick="runDoESweep()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-slate-950 rounded-lg shadow-lg text-sm">⚡ Generar Matriz DoE (625 Puntos)</button>
+          <button onclick="runDoESweep()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-slate-950 rounded-xl shadow-lg text-xs sm:text-sm transition-all">⚡ Generar Matriz DoE (625 Puntos)</button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="text-xs text-slate-400">Diámetro Inyector Mínimo (mm)</label>
-            <input type="number" id="doeMinInj" value="0.80" step="0.05" onchange="runDoESweep()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+            <label class="text-[11px] text-slate-400 block font-medium">Inyector Mín (mm)</label>
+            <input type="number" id="doeMinInj" value="0.80" step="0.05" onchange="runDoESweep()" class="w-full mt-1 p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-bold">
           </div>
-          <div>
-            <label class="text-xs text-slate-400">Diámetro Inyector Máximo (mm)</label>
-            <input type="number" id="doeMaxInj" value="1.50" step="0.05" onchange="runDoESweep()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+            <label class="text-[11px] text-slate-400 block font-medium">Inyector Máx (mm)</label>
+            <input type="number" id="doeMaxInj" value="1.50" step="0.05" onchange="runDoESweep()" class="w-full mt-1 p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-bold">
           </div>
-          <div>
-            <label class="text-xs text-slate-400">Presión Suministro Mínima (mbar)</label>
-            <input type="number" id="doeMinPres" value="10.0" step="1.0" onchange="runDoESweep()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+            <label class="text-[11px] text-slate-400 block font-medium">Presión Mín (mbar)</label>
+            <input type="number" id="doeMinPres" value="10.0" step="1.0" onchange="runDoESweep()" class="w-full mt-1 p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-bold">
           </div>
-          <div>
-            <label class="text-xs text-slate-400">Presión Suministro Máxima (mbar)</label>
-            <input type="number" id="doeMaxPres" value="30.0" step="1.0" onchange="runDoESweep()" class="w-full mt-1 p-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+            <label class="text-[11px] text-slate-400 block font-medium">Presión Máx (mbar)</label>
+            <input type="number" id="doeMaxPres" value="30.0" step="1.0" onchange="runDoESweep()" class="w-full mt-1 p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-bold">
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-8 bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm font-bold text-slate-300">🗺️ Mapa de Ventana de Operación Segura (Matriz 25x25)</h3>
-            <div class="flex gap-3 text-xs font-semibold">
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Zona Verde (Apto NTC)</span>
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Zona Amarilla (Alerta)</span>
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Zona Roja (No Cumple)</span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <div class="lg:col-span-8 bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700 shadow-md">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-300">🗺️ Mapa de Ventana de Operación Segura (Matriz 25x25)</h3>
+            <div class="flex gap-2.5 text-[11px] font-semibold flex-wrap">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Verde (Apto)</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Alerta</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> No Cumple</span>
             </div>
           </div>
-          <canvas id="doeCanvas" width="600" height="400" class="w-full bg-slate-950 rounded-lg border border-slate-800 cursor-pointer"></canvas>
+          <div class="w-full overflow-hidden rounded-xl border border-slate-900">
+            <canvas id="doeCanvas" width="600" height="400" class="w-full bg-slate-950 block cursor-pointer"></canvas>
+          </div>
         </div>
 
-        <div class="lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
-          <h3 class="text-md font-bold text-emerald-400 border-b border-slate-700 pb-2">⭐ Diseño Óptimo Recomendado</h3>
-          <div class="bg-slate-900 p-4 rounded-lg border border-emerald-500/40 space-y-3">
+        <div class="lg:col-span-4 bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700 space-y-4 shadow-md">
+          <h3 class="text-sm font-bold text-emerald-400 border-b border-slate-700 pb-2">⭐ Diseño Óptimo Recomendado</h3>
+          <div class="bg-slate-900 p-4 rounded-xl border border-emerald-500/40 space-y-2.5">
             <div>
-              <span class="text-xs text-slate-400 block">Diámetro del Inyector Óptimo</span>
-              <span id="doeOptInj" class="text-2xl font-extrabold text-emerald-400">1.15 mm</span>
+              <span class="text-[11px] text-slate-400 block font-medium">Diámetro del Inyector Óptimo</span>
+              <span id="doeOptInj" class="text-xl sm:text-2xl font-extrabold text-emerald-400">1.15 mm</span>
             </div>
             <div>
-              <span class="text-xs text-slate-400 block">Presión de Suministro Recomendada</span>
-              <span id="doeOptPres" class="text-xl font-bold text-blue-400">18.0 mbar</span>
+              <span class="text-[11px] text-slate-400 block font-medium">Presión Recomendada</span>
+              <span id="doeOptPres" class="text-lg sm:text-xl font-bold text-blue-400">18.0 mbar</span>
             </div>
             <div>
-              <span class="text-xs text-slate-400 block">Potencia Térmica Proyectada</span>
-              <span id="doeOptPower" class="text-lg font-semibold text-slate-200">2.04 kW</span>
+              <span class="text-[11px] text-slate-400 block font-medium">Potencia Proyectada</span>
+              <span id="doeOptPower" class="text-base sm:text-lg font-semibold text-slate-200">2.04 kW</span>
             </div>
             <div>
-              <span class="text-xs text-slate-400 block">Margen de Seguridad Normativo</span>
-              <span id="doeOptMargin" class="text-sm font-bold text-emerald-300">+6.5% de tolerancia</span>
+              <span class="text-[11px] text-slate-400 block font-medium">Margen de Tolerancia</span>
+              <span id="doeOptMargin" class="text-xs font-bold text-emerald-300">±6.5% de margen</span>
             </div>
           </div>
-          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700 text-xs text-slate-300 space-y-1">
+          <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
             <span class="font-bold text-amber-400 block">💡 Diagnóstico de Robustez:</span>
             <p id="doeRobustnessText">El 42.5% de los puntos explorados están en Zona Verde. El diseño es altamente robusto ante fluctuaciones de presión de gas.</p>
           </div>
@@ -294,21 +321,21 @@
     </div>
 
     <!-- TAB 5: ÍNDICES DE WEAVER (INTERCAMBIABILIDAD DE GASES) -->
-    <div id="tabWeaver" class="hidden bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-4xl mx-auto space-y-6">
-      <h2 class="text-xl font-bold text-blue-400 flex items-center gap-2">🔀 Matriz de Intercambiabilidad de Gases - Índices de Weaver</h2>
-      <p class="text-sm text-slate-300">Evalúa la sustitución de familias de gas (ejemplo: Gas Natural a Propano/GLP) mediante los 4 índices fundamentales de intercambiabilidad.</p>
+    <div id="tabWeaver" class="hidden bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 max-w-4xl mx-auto space-y-5 shadow-md">
+      <h2 class="text-lg sm:text-xl font-bold text-blue-400 flex items-center gap-2">🔀 Matriz de Intercambiabilidad - Índices de Weaver</h2>
+      <p class="text-xs sm:text-sm text-slate-300">Evalúa la sustitución entre familias de gas (Gas Natural vs Propano/GLP) mediante los 4 índices fundamentales de intercambiabilidad.</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="text-xs text-slate-400">Gas de Referencia (Diseño Original del Producto)</label>
-          <select id="weaverRef" onchange="runWeaverAnalysis()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Gas de Referencia (Diseño Original)</label>
+          <select id="weaverRef" onchange="runWeaverAnalysis()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
             <option value="G20_GAS_NATURAL" selected>Gas Natural Comercial (G20)</option>
             <option value="G31_PROPANO">Propano Comercial (G31)</option>
           </select>
         </div>
         <div>
           <label class="text-xs text-slate-400">Gas Objetivo a Sustituir</label>
-          <select id="weaverTarget" onchange="runWeaverAnalysis()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <select id="weaverTarget" onchange="runWeaverAnalysis()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
             <option value="G31_PROPANO" selected>Propano Comercial (G31)</option>
             <option value="G30_BUTANO">Butano Comercial (G30)</option>
             <option value="G23_GAS_NATURAL_ALTO_CO2">Gas Natural Rico en Inertes (G23)</option>
@@ -316,131 +343,133 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Combustión Incompleta</span>
-          <span id="weaverII" class="text-lg font-bold text-blue-400">1.00</span>
-          <span class="text-xs text-slate-400 block mt-1">Límite: 0.90 - 1.10</span>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 shadow">
+          <span class="text-[11px] text-slate-400 block font-medium">Combustión Incompleta</span>
+          <span id="weaverII" class="text-base sm:text-lg font-bold text-blue-400 mt-0.5 block">1.00</span>
+          <span class="text-[10px] text-slate-400 block mt-1">Permitido: 0.90 - 1.10</span>
         </div>
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Retrollama (Flashback)</span>
-          <span id="weaverIF" class="text-lg font-bold text-emerald-400">1.00</span>
-          <span class="text-xs text-slate-400 block mt-1">Límite: ≤ 1.20</span>
+        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 shadow">
+          <span class="text-[11px] text-slate-400 block font-medium">Retrollama (Flashback)</span>
+          <span id="weaverIF" class="text-base sm:text-lg font-bold text-emerald-400 mt-0.5 block">1.00</span>
+          <span class="text-[10px] text-slate-400 block mt-1">Límite: ≤ 1.20</span>
         </div>
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Desprendimiento (Lifting)</span>
-          <span id="weaverIL" class="text-lg font-bold text-purple-400">1.00</span>
-          <span class="text-xs text-slate-400 block mt-1">Límite: ≥ 0.80</span>
+        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 shadow">
+          <span class="text-[11px] text-slate-400 block font-medium">Desprendimiento (Lifting)</span>
+          <span id="weaverIL" class="text-base sm:text-lg font-bold text-purple-400 mt-0.5 block">1.00</span>
+          <span class="text-[10px] text-slate-400 block mt-1">Límite: ≥ 0.80</span>
         </div>
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Puntas Amarillas (Hollín)</span>
-          <span id="weaverIY" class="text-lg font-bold text-amber-400">1.00</span>
-          <span class="text-xs text-slate-400 block mt-1">Límite: ≤ 1.35</span>
+        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 shadow">
+          <span class="text-[11px] text-slate-400 block font-medium">Puntas Amarillas (Hollín)</span>
+          <span id="weaverIY" class="text-base sm:text-lg font-bold text-amber-400 mt-0.5 block">1.00</span>
+          <span class="text-[10px] text-slate-400 block mt-1">Límite: ≤ 1.35</span>
         </div>
       </div>
 
-      <div id="weaverRecCard" class="p-4 bg-slate-900 rounded-lg border border-blue-500/40">
-        <h3 class="text-md font-bold text-blue-300">Dictamen de Intercambiabilidad:</h3>
-        <p id="weaverRecText" class="text-sm font-semibold text-emerald-400 mt-1">INTERCAMBIO DIRECTO PERMITIDO SIN CAMBIOS DE INYECTOR O VENTURI</p>
+      <div id="weaverRecCard" class="p-4 bg-slate-900 rounded-xl border border-blue-500/40">
+        <h3 class="text-xs font-bold text-blue-300 uppercase tracking-wider">Dictamen de Intercambiabilidad:</h3>
+        <p id="weaverRecText" class="text-xs sm:text-sm font-semibold text-emerald-400 mt-1">INTERCAMBIO DIRECTO PERMITIDO SIN CAMBIOS DE INYECTOR O VENTURI</p>
       </div>
     </div>
 
     <!-- TAB 6: QUEMADORES TUBULARES DE HORNO 1D -->
-    <div id="tabOven" class="hidden bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-4xl mx-auto space-y-6">
-      <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">🍞 Simulación 1D de Quemadores Tubulares de Horno & Corona</h2>
-      <p class="text-sm text-slate-300">Calcula la distribución de presión y la uniformidad de velocidad de salida puerto por puerto a lo largo del tubo quemador.</p>
+    <div id="tabOven" class="hidden bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 max-w-4xl mx-auto space-y-5 shadow-md">
+      <h2 class="text-lg sm:text-xl font-bold text-amber-400 flex items-center gap-2">🍞 Simulación 1D de Quemadores Tubulares de Horno</h2>
+      <p class="text-xs sm:text-sm text-slate-300">Calcula la distribución de presión e uniformidad de velocidad puerto por puerto a lo largo del tubo.</p>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div>
-          <label class="text-xs text-slate-400">Longitud del Tubo (mm)</label>
-          <input type="number" id="ovenLen" value="450" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Longitud (mm)</label>
+          <input type="number" id="ovenLen" value="450" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs sm:text-sm text-white font-bold">
         </div>
         <div>
-          <label class="text-xs text-slate-400">Diámetro Interior del Tubo (mm)</label>
-          <input type="number" id="ovenTubeD" value="25" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Diámetro Interior (mm)</label>
+          <input type="number" id="ovenTubeD" value="25" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs sm:text-sm text-white font-bold">
         </div>
         <div>
-          <label class="text-xs text-slate-400">Número Total de Puertos</label>
-          <input type="number" id="ovenNumPorts" value="40" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Total Puertos</label>
+          <input type="number" id="ovenNumPorts" value="40" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs sm:text-sm text-white font-bold">
         </div>
         <div>
-          <label class="text-xs text-slate-400">Diámetro de cada Puerto (mm)</label>
-          <input type="number" id="ovenPortD" value="2.5" step="0.1" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Diámetro Puerto (mm)</label>
+          <input type="number" id="ovenPortD" value="2.5" step="0.1" oninput="runOvenSimulation()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs sm:text-sm text-white font-bold">
         </div>
       </div>
 
-      <div class="bg-slate-900 p-5 rounded-xl border border-slate-700 space-y-3">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-300">📊 Perfil de Velocidad y Llama a lo Largo del Quemador</h3>
-          <span id="ovenUnifBadge" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold text-xs rounded-full">Uniformidad: 92.4%</span>
+      <div class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-700 space-y-3">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <h3 class="text-xs sm:text-sm font-bold text-slate-300">📊 Perfil de Velocidad a lo Largo del Quemador</h3>
+          <span id="ovenUnifBadge" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold text-xs rounded-full border border-emerald-500/30">Uniformidad: 92.4%</span>
         </div>
-        <canvas id="ovenChart" height="140"></canvas>
+        <div class="w-full relative">
+          <canvas id="ovenChart" height="140"></canvas>
+        </div>
       </div>
     </div>
 
     <!-- TAB 2: EQUIVALENCIA NEUMÁTICA (COLD TEST) -->
-    <div id="tabAir" class="hidden bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-4xl mx-auto space-y-6">
-      <h2 class="text-xl font-bold text-blue-400">💨 Módulo de Equivalencia Neumática (Chequeo de Inyectores con Aire)</h2>
-      <p class="text-sm text-slate-300">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real del inyector con diferentes gases combustibles.</p>
+    <div id="tabAir" class="hidden bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 max-w-4xl mx-auto space-y-5 shadow-md">
+      <h2 class="text-lg sm:text-xl font-bold text-blue-400 flex items-center gap-2">💨 Módulo de Equivalencia Neumática (Chequeo con Aire)</h2>
+      <p class="text-xs sm:text-sm text-slate-300">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real con gas.</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-slate-400">Caudal de Aire Medido en Banco Frío (L/h)</label>
-          <input type="number" id="airQ" value="140.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <input type="number" id="airQ" value="140.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
         </div>
         <div>
           <label class="text-xs text-slate-400">Presión de Ensayo en Banco de Aire (mbar)</label>
-          <input type="number" id="airP" value="10.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <input type="number" id="airP" value="10.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
         </div>
         <div>
-          <label class="text-xs text-slate-400">Presión Nominal del Gas en el Producto (mbar)</label>
-          <input type="number" id="gasP" value="18.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <label class="text-xs text-slate-400">Presión Nominal del Gas en Producto (mbar)</label>
+          <input type="number" id="gasP" value="18.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
         </div>
         <div>
           <label class="text-xs text-slate-400">Gas Objetivo de Evaluación</label>
-          <select id="airGasTarget" onchange="runAirEquivalence()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+          <select id="airGasTarget" onchange="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white">
             <option value="G20">Gas Natural G20 (dr = 0.555)</option>
             <option value="G31">Propano G31 (dr = 1.550)</option>
           </select>
         </div>
       </div>
 
-      <div id="airResultCard" class="p-4 bg-slate-900 rounded-lg border border-blue-500/30 space-y-2">
-        <h3 class="text-md font-bold text-blue-300">Resultados de Predicción Neumática:</h3>
-        <p class="text-sm text-slate-200">-> Caudal de Gas Estimado: <span id="airQGas" class="font-bold text-emerald-400">0 L/h</span></p>
-        <p class="text-sm text-slate-200">-> Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-blue-400">0 kW</span></p>
-        <p class="text-sm text-slate-200">-> Diámetro Efectivo Calculado del Orificio: <span id="airDEff" class="font-bold text-amber-400">0 mm</span></p>
+      <div id="airResultCard" class="p-4 bg-slate-900 rounded-xl border border-blue-500/30 space-y-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-blue-300">Resultados de Predicción Neumática:</h3>
+        <p class="text-xs sm:text-sm text-slate-200">-> Caudal de Gas Estimado: <span id="airQGas" class="font-bold text-emerald-400">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-slate-200">-> Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-blue-400">0 kW</span></p>
+        <p class="text-xs sm:text-sm text-slate-200">-> Diámetro Efectivo Calculado: <span id="airDEff" class="font-bold text-amber-400">0 mm</span></p>
       </div>
     </div>
 
     <!-- TAB 3: METROLOGÍA & R&R -->
-    <div id="tabMet" class="hidden bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-4xl mx-auto space-y-6">
-      <h2 class="text-xl font-bold text-purple-400">📊 Motor Estadístico & Recomendador de Rotulado (NTC 2832-1)</h2>
-      <p class="text-sm text-slate-300">Ingresa las lecturas de potencia medidas en réplicas o muestras del laboratorio (separadas por comas):</p>
+    <div id="tabMet" class="hidden bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 max-w-4xl mx-auto space-y-5 shadow-md">
+      <h2 class="text-lg sm:text-xl font-bold text-purple-400 flex items-center gap-2">📊 Motor Estadístico R&R & Recomendador de Rotulado</h2>
+      <p class="text-xs sm:text-sm text-slate-300">Ingresa las lecturas de potencia medidas en réplicas o muestras del laboratorio (separadas por comas):</p>
 
       <div>
         <label class="text-xs text-slate-400">Lecturas de Potencia Medidas en Muestras (kW)</label>
-        <input type="text" id="metData" value="2.02, 2.05, 1.99, 2.04, 2.01" oninput="runMetrology()" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white">
+        <input type="text" id="metData" value="2.02, 2.05, 1.99, 2.04, 2.01" oninput="runMetrology()" class="w-full mt-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-white font-medium">
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Promedio Medido</span>
-          <span id="metMean" class="text-lg font-bold text-blue-400">0 kW</span>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow">
+          <span class="text-xs text-slate-400 block font-medium">Promedio Medido</span>
+          <span id="metMean" class="text-lg sm:text-xl font-bold text-blue-400 mt-0.5 block">0 kW</span>
         </div>
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Repetibilidad (CV %)</span>
-          <span id="metCV" class="text-lg font-bold text-emerald-400">0 %</span>
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow">
+          <span class="text-xs text-slate-400 block font-medium">Repetibilidad (CV %)</span>
+          <span id="metCV" class="text-lg sm:text-xl font-bold text-emerald-400 mt-0.5 block">0 %</span>
         </div>
-        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400 block">Incertidumbre Expandida (95%)</span>
-          <span id="metU" class="text-lg font-bold text-purple-400">± 0 kW</span>
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow">
+          <span class="text-xs text-slate-400 block font-medium">Incertidumbre Expandida (95%)</span>
+          <span id="metU" class="text-lg sm:text-xl font-bold text-purple-400 mt-0.5 block">± 0 kW</span>
         </div>
       </div>
 
-      <div class="p-4 bg-slate-900 rounded-lg border border-purple-500/30">
-        <h3 class="text-md font-bold text-purple-300 mb-1">Recomendación para Placa de Características del Producto:</h3>
-        <p class="text-sm text-slate-200">Se recomienda declarar una Potencia Nominal de: <span id="metRecLabel" class="text-xl font-extrabold text-emerald-400">0 kW</span></p>
+      <div class="p-4 bg-slate-900 rounded-xl border border-purple-500/30">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 mb-1">Recomendación para Placa de Características del Producto:</h3>
+        <p class="text-xs sm:text-sm text-slate-200">Se recomienda declarar una Potencia Nominal de: <span id="metRecLabel" class="text-lg sm:text-xl font-extrabold text-emerald-400">0 kW</span></p>
         <p class="text-xs text-slate-400 mt-1">Banda de Tolerancia Permisible NTC 2832-1 (±8%): <span id="metBand">0 - 0 kW</span></p>
       </div>
     </div>
@@ -448,26 +477,26 @@
   </main>
 
   <!-- MODAL / CONTENEDOR DE REPORTE FORMATO IEEE PARA IMPRESIÓN / PDF -->
-  <div id="ieeeReportModal" class="hidden fixed inset-0 bg-slate-950/90 z-50 overflow-y-auto p-4 sm:p-10 text-slate-900 font-serif">
+  <div id="ieeeReportModal" class="hidden fixed inset-0 bg-slate-950/90 z-50 overflow-y-auto p-3 sm:p-10 text-slate-900 font-serif">
     
-    <div class="max-w-4xl mx-auto bg-white p-8 sm:p-12 shadow-2xl rounded-sm border border-slate-300 relative text-black text-xs leading-relaxed">
+    <div class="max-w-4xl mx-auto bg-white p-5 sm:p-12 shadow-2xl rounded-sm border border-slate-300 relative text-black text-xs leading-relaxed">
       
       <!-- BOTONES DE ACCIÓN EN EL MODAL -->
-      <div class="no-print absolute top-4 right-4 flex gap-2">
-        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-sans text-xs font-bold rounded shadow">🖨️ Imprimir / Guardar como PDF (IEEE)</button>
-        <button onclick="closeIEEEReport()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-sans text-xs font-bold rounded">✕ Cerrar</button>
+      <div class="no-print absolute top-3 right-3 flex gap-2">
+        <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-sans text-xs font-bold rounded shadow">🖨️ Imprimir / PDF (IEEE)</button>
+        <button onclick="closeIEEEReport()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-sans text-xs font-bold rounded">✕ Cerrar</button>
       </div>
 
       <!-- ENCABEZADO IEEE -->
       <div class="flex justify-between items-center text-[10px] text-slate-500 border-b border-slate-300 pb-2 mb-6 font-sans">
         <span>INFORME TÉCNICO DE LABORATORIO DE COMBUSTIÓN</span>
-        <span>NORMATIVA NTC 2832-1 / NTC 2832-2</span>
+        <span class="hidden sm:inline">NORMATIVA NTC 2832-1 / NTC 2832-2</span>
         <span id="ieeePageNum">PÁGINA 1</span>
       </div>
 
       <!-- TÍTULO DEL ARTÍCULO IEEE -->
       <div class="text-center mb-6 space-y-2">
-        <h1 id="ieeeTitle" class="text-xl font-bold font-sans tracking-tight text-black">
+        <h1 id="ieeeTitle" class="text-lg sm:text-xl font-bold font-sans tracking-tight text-black">
           Dictamen Técnico de Evaluación Físico-Matemática y Certificación Normativa de Sistema de Combustión para Gasodomésticos
         </h1>
         <p id="ieeeAuthor" class="text-[11px] italic font-sans text-slate-700">
@@ -476,17 +505,17 @@
       </div>
 
       <!-- RESUMEN / ABSTRACT IEEE -->
-      <div class="bg-slate-50 p-4 border-t border-b border-slate-300 mb-6 font-serif">
+      <div class="bg-slate-50 p-3.5 sm:p-4 border-t border-b border-slate-300 mb-6 font-serif">
         <p class="text-justify italic">
           <strong class="font-bold font-sans not-italic">Resumen –</strong> <span id="ieeeAbstract">Este documento presenta el análisis técnico y la evaluación de conformidad del sistema de combustión según la norma NTC 2832-1 y NTC 2832-2. A través de la simulación de fluidos y termodinámica de premezcla parcial, se determinan la potencia nominal, la tasa de aireación primaria, las emisiones de CO neutro y el rendimiento térmico. Los resultados validan que la configuración actual cumple satisfactoriamente con la banda de tolerancia legal del ±8% y los límites de higiene de combustión.</span>
         </p>
       </div>
 
-      <!-- CUERPO PRINCIPAL EN 2 COLUMNAS ESTILO IEEE -->
-      <div class="ieee-columns space-y-4">
+      <!-- CUERPO PRINCIPAL EN 2 COLUMNAS ESTILO IEEE (Adapta 1 Columna en móvil, 2 en Impresión y Desktop) -->
+      <div class="sm:ieee-columns space-y-4 sm:space-y-0">
         
         <!-- I. INTRODUCCIÓN -->
-        <section>
+        <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">I. INTRODUCCIÓN</h2>
           <p>
             El presente informe documenta la evaluación técnica realizada sobre un quemador atmosférico de premezcla parcial para gasodomésticos (cocinas, cubiertas y hornos). El objetivo principal es diagnosticar el comportamiento térmico y de emisiones ante variaciones de presión de suministro y diámetro del inyector, verificando el cumplimiento de la norma NTC 2832-1.
@@ -494,12 +523,12 @@
         </section>
 
         <!-- II. METODOLOGÍA -->
-        <section>
+        <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">II. METODOLOGÍA Y MODELADO FÍSICO</h2>
           <p>
             El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:
           </p>
-          <div class="my-2 p-2 bg-slate-100 text-center font-mono text-[10px] rounded">
+          <div class="my-2 p-2 bg-slate-100 text-center font-mono text-[9px] sm:text-[10px] rounded overflow-x-auto">
             Q* = A · Cd · √(2p / (ρ_aire · d)) · (T*/T) · (Patm + p / P*)
           </div>
           <p>
@@ -508,16 +537,16 @@
         </section>
 
         <!-- III. RESULTADOS -->
-        <section>
+        <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">III. RESULTADOS Y CUMPLIMIENTO NORMATIVO</h2>
           <p id="ieeeResultsText">
             En la Tabla 1 se exponen los parámetros medidos y calculados durante la evaluación del sistema de combustión a condiciones nominales de ensayo.
           </p>
           
           <!-- TABLA ESTILO IEEE -->
-          <div class="my-3">
+          <div class="my-3 overflow-x-auto">
             <div class="text-[10px] font-sans font-bold text-center mb-1">Tabla 1. Evaluación de parámetros normativos NTC 2832-1.</div>
-            <table class="w-full text-[10px] font-sans border-t-2 border-b-2 border-black border-collapse">
+            <table class="w-full text-[10px] font-sans border-t-2 border-b-2 border-black border-collapse min-w-[260px]">
               <thead>
                 <tr class="border-b border-black">
                   <th class="py-1 text-left">Parámetro</th>
@@ -557,7 +586,7 @@
         </section>
 
         <!-- IV. DISCUSIÓN -->
-        <section>
+        <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">IV. DISCUSIÓN DE RESULTADOS</h2>
           <p id="ieeeDiscussion">
             La potencia térmica calculada presenta una desviación acorde a la especificación nominal. El exceso de aire primario garantiza una combustión limpia eliminando el riesgo de puntas amarillas y depósitos de hollín.
@@ -565,7 +594,7 @@
         </section>
 
         <!-- V. CONCLUSIONES -->
-        <section>
+        <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-black border-b border-slate-400 pb-1 mb-2">V. CONCLUSIONES Y DICTAMEN</h2>
           <p id="ieeeConclusion">
             El producto evaluado cumple satisfactoriamente con los requisitos de aptitud funcional, higiene de combustión y eficiencia energética exigidos por la norma NTC 2832-1. Se autoriza su conformidad técnica para emisión de placa de características.
@@ -602,10 +631,11 @@
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#cbd5e1' } } },
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 10 } } } },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, title: { display: true, text: 'Presión de Suministro de Gas (mbar)', color: '#94a3b8' } },
-            y: { ticks: { color: '#94a3b8' }, title: { display: true, text: 'Potencia Térmica Nominal (kW)', color: '#94a3b8' } }
+            x: { ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Presión de Suministro (mbar)', color: '#94a3b8', font: { size: 10 } } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Potencia Nominal (kW)', color: '#94a3b8', font: { size: 10 } } }
           }
         }
       });
@@ -615,14 +645,15 @@
         type: 'bar',
         data: {
           labels: [],
-          datasets: [{ label: 'Velocidad de Salida en Puerto (m/s)', data: [], backgroundColor: '#f59e0b' }]
+          datasets: [{ label: 'Velocidad en Puerto (m/s)', data: [], backgroundColor: '#f59e0b' }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#cbd5e1' } } },
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 10 } } } },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, title: { display: true, text: 'Número del Puerto de Combustión', color: '#94a3b8' } },
-            y: { ticks: { color: '#94a3b8' }, title: { display: true, text: 'Velocidad de Salida (m/s)', color: '#94a3b8' } }
+            x: { ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Número de Puerto', color: '#94a3b8', font: { size: 10 } } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Velocidad (m/s)', color: '#94a3b8', font: { size: 10 } } }
           }
         }
       });
@@ -681,14 +712,14 @@
       const ntcBadge = document.getElementById('ntcBadge');
 
       if (isPass) {
-        ntcCard.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex justify-between items-center";
-        ntcText.innerText = "CERTIFICACIÓN SIMULADA EXITOSA (CUMPLE NTC 2832)";
-        ntcBadge.className = "w-12 h-12 rounded-full bg-emerald-500 text-slate-950 font-bold text-xl flex items-center justify-center";
+        ntcCard.className = "p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/30 flex justify-between items-center shadow-md";
+        ntcText.innerText = "CERTIFICACIÓN SIMULADA EXITOSA";
+        ntcBadge.className = "w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-500 text-slate-950 font-bold text-lg sm:text-xl flex items-center justify-center shrink-0";
         ntcBadge.innerText = "✓";
       } else {
-        ntcCard.className = "p-4 rounded-xl border border-red-500/30 bg-red-950/30 flex justify-between items-center";
-        ntcText.innerText = "NO CUMPLE NTC 2832-1 (REVISAR PARÁMETROS)";
-        ntcBadge.className = "w-12 h-12 rounded-full bg-red-500 text-white font-bold text-xl flex items-center justify-center";
+        ntcCard.className = "p-4 rounded-2xl border border-red-500/30 bg-red-950/30 flex justify-between items-center shadow-md";
+        ntcText.innerText = "NO CUMPLE NTC 2832-1 (REVISAR)";
+        ntcBadge.className = "w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-500 text-white font-bold text-lg sm:text-xl flex items-center justify-center shrink-0";
         ntcBadge.innerText = "✕";
       }
 
@@ -713,21 +744,21 @@
 
       if (lambda < 0.45) {
         flameColor = "#f59e0b";
-        statusBadge.innerText = "⚠️ Puntas Amarillas (Deficiencia de Aire Primario)";
-        statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400";
+        statusBadge.innerText = "⚠️ Puntas Amarillas";
+        statusBadge.className = "self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400";
       } else if (vPort < sl * 0.9) {
         flameColor = "#ef4444";
         yOffset = 40;
-        statusBadge.innerText = "🚨 Retorno de Llama (Flashback)";
-        statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400";
+        statusBadge.innerText = "🚨 Retorno de Llama";
+        statusBadge.className = "self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold bg-red-500/20 text-red-400";
       } else if (vPort > sl * 4.2) {
         flameColor = "#60a5fa";
         yOffset = -25;
-        statusBadge.innerText = "⚠️ Llama Desprendida (Lifting)";
-        statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400";
+        statusBadge.innerText = "⚠️ Llama Desprendida";
+        statusBadge.className = "self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-400";
       } else {
         statusBadge.innerText = "✓ Llama Azul Estable";
-        statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400";
+        statusBadge.className = "self-start sm:self-auto px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400";
       }
 
       for (let i = 0; i < 7; i++) {
@@ -861,7 +892,7 @@
       document.getElementById('doeOptInj').innerText = optInj.toFixed(2) + " mm";
       document.getElementById('doeOptPres').innerText = optPres.toFixed(1) + " mbar";
       document.getElementById('doeOptPower').innerText = optPower.toFixed(2) + " kW";
-      document.getElementById('doeOptMargin').innerText = "±" + maxSafetyMargin.toFixed(1) + "% de tolerancia";
+      document.getElementById('doeOptMargin').innerText = "±" + maxSafetyMargin.toFixed(1) + "% de margen";
       document.getElementById('doeRobustnessText').innerText = `El ${greenPct}% de la ventana de exploración está en Zona Verde Apta NTC 2832. El punto blanco marca la combinación con mayor estabilidad y robustez.`;
     }
 
@@ -887,10 +918,10 @@
 
       if (isPass) {
         recText.innerText = "✓ INTERCAMBIO DIRECTO PERMITIDO SIN CAMBIOS DE INYECTOR O VENTURI";
-        recText.className = "text-sm font-semibold text-emerald-400 mt-1";
+        recText.className = "text-xs sm:text-sm font-semibold text-emerald-400 mt-1";
       } else {
         recText.innerText = "⚠️ REQUIERE CAMBIO DE INYECTOR O AJUSTE DE AIRE PRIMARIO (CONVERSIÓN DE GAS)";
-        recText.className = "text-sm font-semibold text-amber-400 mt-1";
+        recText.className = "text-xs sm:text-sm font-semibold text-amber-400 mt-1";
       }
     }
 
@@ -946,11 +977,8 @@
       document.getElementById('metBand').innerText = (recLabel * 0.92).toFixed(2) + " kW - " + (recLabel * 1.08).toFixed(2) + " kW";
     }
 
-    // GENERACIÓN DE REPORTE FORMATO ARTÍCULO IEEE
     function generateIEEEReport() {
-      // Actualizar valores de la simulación activa en el reporte
       const pNom = document.getElementById('resPower').innerText;
-      const pDiff = document.getElementById('resPowerDiff').innerText;
       const coVal = document.getElementById('resCO').innerText;
       const effVal = document.getElementById('resEff').innerText;
       const flameVal = document.getElementById('flameStatusBadge').innerText;
@@ -975,35 +1003,35 @@
       document.getElementById('tabAir').classList.add('hidden');
       document.getElementById('tabMet').classList.add('hidden');
 
-      document.getElementById('btnTabSim').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
-      document.getElementById('btnTabDoe').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
-      document.getElementById('btnTabWeaver').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
-      document.getElementById('btnTabOven').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
-      document.getElementById('btnTabAir').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
-      document.getElementById('btnTabMet').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600";
+      document.getElementById('btnTabSim').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
+      document.getElementById('btnTabDoe').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
+      document.getElementById('btnTabWeaver').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
+      document.getElementById('btnTabOven').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
+      document.getElementById('btnTabAir').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
+      document.getElementById('btnTabMet').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all";
 
       if (tab === 'sim') {
         document.getElementById('tabSim').classList.remove('hidden');
-        document.getElementById('btnTabSim').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabSim').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
       } else if (tab === 'doe') {
         document.getElementById('tabDoe').classList.remove('hidden');
-        document.getElementById('btnTabDoe').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabDoe').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
         runDoESweep();
       } else if (tab === 'weaver') {
         document.getElementById('tabWeaver').classList.remove('hidden');
-        document.getElementById('btnTabWeaver').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabWeaver').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
         runWeaverAnalysis();
       } else if (tab === 'oven') {
         document.getElementById('tabOven').classList.remove('hidden');
-        document.getElementById('btnTabOven').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabOven').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
         runOvenSimulation();
       } else if (tab === 'air') {
         document.getElementById('tabAir').classList.remove('hidden');
-        document.getElementById('btnTabAir').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabAir').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
         runAirEquivalence();
       } else if (tab === 'met') {
         document.getElementById('tabMet').classList.remove('hidden');
-        document.getElementById('btnTabMet').className = "px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white";
+        document.getElementById('btnTabMet').className = "shrink-0 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
         runMetrology();
       }
     }
