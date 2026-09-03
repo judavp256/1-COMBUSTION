@@ -313,6 +313,17 @@
           </div>
         </div>
 
+        <!-- Modelo de Eficiencia (calibrado por regresión contra ensayos reales, solo lectura desde GitHub) -->
+        <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-semibold text-zinc-300 block">Modelo de Eficiencia (η)</span>
+            <span id="effCalibStatus" class="text-[10px] text-zinc-500">Sin calibrar — usando valores por defecto</span>
+          </div>
+          <div class="text-right shrink-0">
+            <button type="button" onclick="switchTab('met')" class="text-[10px] text-cyan-400 hover:text-cyan-300 underline">ver en Metrología</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Panel de Resultados y Visualización (Derecha) -->
@@ -726,6 +737,51 @@
         </div>
         <p class="text-[10px] text-zinc-500">El factor calibrado se aplica solo a la potencia mostrada (Simulador, curva de sensibilidad y DoE); no altera λ, CO ni la evaluación de estabilidad de llama, porque esos ya se calibran por separado.</p>
       </div>
+
+      <!-- MODELO DE EFICIENCIA: CALIBRACIÓN DE SOLO LECTURA DESDE GITHUB -->
+      <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-violet-500/30 space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-violet-400 flex items-center gap-2">📈 Modelo de Eficiencia (η) — Calibración desde Ensayos Reales</h3>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Este panel es de <span class="text-zinc-300 font-semibold">solo lectura</span>: no hay forma de agregar ensayos desde la plataforma. Los datos se administran centralizadamente editando el archivo JSON en GitHub; aquí solo se leen y se ajustan por regresión los coeficientes del modelo (base, sensibilidad a la distancia al recipiente, sensibilidad al exceso de aire primario). Con menos de 3 ensayos válidos no se recalibra nada.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
+          <div>
+            <label class="text-xs text-zinc-400">URL Raw del JSON en GitHub</label>
+            <input type="text" id="effJsonUrl" placeholder="https://raw.githubusercontent.com/usuario/repo/branch/ruta/eficiencia.json" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-white font-mono">
+          </div>
+          <button onclick="loadEfficiencyData()" class="px-4 py-2.5 text-xs font-bold rounded-md bg-violet-500 hover:bg-violet-400 text-zinc-950 transition-all whitespace-nowrap">Cargar desde GitHub</button>
+        </div>
+        <p id="effLoadStatus" class="text-[11px] text-zinc-500"></p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-[11px] border-collapse">
+            <thead>
+              <tr class="text-zinc-500 border-b border-zinc-800">
+                <th class="text-left py-1.5 font-sans font-semibold">Producto</th>
+                <th class="text-right py-1.5 font-sans font-semibold">hPot (mm)</th>
+                <th class="text-right py-1.5 font-sans font-semibold">λ</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Eficiencia Real</th>
+              </tr>
+            </thead>
+            <tbody id="effDataBody" class="font-mono">
+              <tr><td colspan="4" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-zinc-950 p-3.5 rounded-md border border-violet-500/30 space-y-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-[11px] text-zinc-500 block font-medium">Coeficientes Calibrados (base / pendiente hPot / pendiente λ)</span>
+              <span id="effCoefsDisplay" class="text-sm font-bold text-violet-400 font-mono">58.500 / 0.150 / 5.000 (valores por defecto)</span>
+            </div>
+            <button onclick="applyEfficiencyCalibration()" id="effApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-violet-500 hover:bg-violet-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all whitespace-nowrap">Aplicar al Simulador</button>
+          </div>
+          <p id="effR2Display" class="text-[10px] text-zinc-500"></p>
+        </div>
+        <p class="text-[10px] text-zinc-500">Recuerda: sigue siendo una correlación aproximada, no el ensayo calorimétrico real de la NTC 2832-2 (agua + recipiente). Sirve para explorar tendencias, no para certificar un producto específico.</p>
+      </div>
     </div>
 
   </main>
@@ -886,6 +942,16 @@
     // potencia mostrada -- no toca lambda, CO ni estabilidad de llama, que ya
     // se calibran por separado (Kc, Cd, etc.).
     let powerCorrectionFactor = 1.0;
+    // Coeficientes del modelo de eficiencia (base, pendiente por distancia al
+    // recipiente, pendiente por exceso de aire primario). Son heurísticos por
+    // diseño -- la NTC 2832-2 define un ensayo calorimétrico real (agua +
+    // recipiente), no una fórmula derivada de estos parámetros. Estos
+    // coeficientes se recalibran por regresión contra ensayos reales cargados
+    // desde un JSON externo (solo lectura, ver runEfficiencyCalibration()).
+    let effBase = 58.5;
+    let effSlopeHPot = 0.15;
+    let effSlopeLambda = 5.0;
+    let effCalibCount = 0;
 
     function initChart() {
       const ctx = document.getElementById('chartPower').getContext('2d');
@@ -1020,7 +1086,7 @@
       // homogeneización antes del puerto puede favorecer heterogeneidad local de CO.
       const mixPenalty = burnerType === 'cerrado' ? 1.15 : 1.0;
       const coPpm = 180.0 * lambdaPen * hFactor * mixPenalty;
-      const effPct = 58.5 - (0.15 * Math.max(0, hPot - 20.0)) - (5.0 * Math.max(0, lambdaPrim - 0.7));
+      const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
 
       const pDiff = ((powerKw - pDecl) / pDecl) * 100.0;
       document.getElementById('resPower').innerText = powerKw.toFixed(2) + " kW";
@@ -1177,7 +1243,7 @@
           let lambdaPen = lambdaPrim >= 0.55 ? 1.0 : Math.pow(0.55 / Math.max(lambdaPrim, 0.1), 2.2);
           const mixPenalty = burnerType === 'cerrado' ? 1.15 : 1.0;
           const coPpm = 180.0 * lambdaPen * hFactor * mixPenalty;
-          const effPct = 58.5 - (0.15 * Math.max(0, hPot - 20.0)) - (5.0 * Math.max(0, lambdaPrim - 0.7));
+          const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
 
           const pDiff = ((powerKw - pDecl) / pDecl) * 100.0;
           const passPower = Math.abs(pDiff) <= 8.0;
@@ -1522,96 +1588,98 @@
       switchTab('sim');
     }
 
-    function generateIEEEReport() {
-      const burnerType = getBurnerType();
-      const pNom = document.getElementById('resPower').innerText;
-      const coVal = document.getElementById('resCO').innerText;
-      const effVal = document.getElementById('resEff').innerText;
-      const flameVal = document.getElementById('flameStatusBadge').innerText;
+    // ==========================================================
+    // MODELO DE EFICIENCIA: CALIBRACIÓN DE SOLO LECTURA DESDE GITHUB
+    // ==========================================================
+    // Esta plataforma NUNCA escribe datos de vuelta al repositorio ni ofrece
+    // un formulario para agregar ensayos -- solo lee un JSON externo
+    // (administrado manualmente por el responsable del laboratorio) y ajusta
+    // por regresión los 3 coeficientes del modelo heurístico de eficiencia.
+    let effLoadedData = [];
+    const EFF_URL_STORAGE_KEY = 'labCombustion_effJsonUrl';
+    const EFF_DEFAULT_URL = 'https://raw.githubusercontent.com/judavp256/1-COMBUSTION/refs/heads/master/data/eficiencia.json';
 
-      const archLabel = burnerType === 'cerrado'
-        ? 'Cerrado (inyector integrado en difusor, línea hermética)'
-        : 'Abierto (venturi con tubo mezclador y arrastre de aire)';
-      document.getElementById('repBurnerType').innerText = archLabel;
-      document.getElementById('repPower').innerText = pNom;
-      document.getElementById('repCO').innerText = coVal;
-      document.getElementById('repEff').innerText = effVal;
-      document.getElementById('repFlame').innerText = flameVal;
-
-      const methodologyBase = "El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:";
-      document.getElementById('ieeeMethodologyText').innerText = burnerType === 'cerrado'
-        ? methodologyBase + " (Arquitectura cerrada: arrastre modelado mediante coeficiente Kc específico de geometría, sin tramo de mezcla previo al difusor)."
-        : methodologyBase + " (Arquitectura abierta: el arrastre incluye la pérdida de carga por fricción en el tubo mezclador según su longitud)."
-
-      document.getElementById('ieeeClosedBurnerNote').classList.toggle('hidden', burnerType !== 'cerrado');
-
-      const pcfNote = document.getElementById('ieeePowerCorrectionNote');
-      const pcfActive = Math.abs(powerCorrectionFactor - 1.0) > 0.001;
-      pcfNote.classList.toggle('hidden', !pcfActive);
-      if (pcfActive) {
-        pcfNote.innerText = "Nota: la potencia reportada incluye un factor de corrección de sitio de " + powerCorrectionFactor.toFixed(3) + ", calibrado a partir de ensayos reales de combustión (Predicho × Factor ≈ Real), para compensar efectos no modelados explícitamente (enfriamiento del gas al expandirse, variación barométrica, transferibilidad del coeficiente de descarga entre aire y gas real).";
+    // Resuelve un sistema lineal 3x3 (A·x = b) por eliminación gaussiana con
+    // pivoteo parcial. Se usa para las ecuaciones normales de la regresión.
+    function solve3x3(A, b) {
+      const M = [A[0].slice(), A[1].slice(), A[2].slice()];
+      const v = b.slice();
+      for (let col = 0; col < 3; col++) {
+        let pivotRow = col;
+        for (let r = col + 1; r < 3; r++) {
+          if (Math.abs(M[r][col]) > Math.abs(M[pivotRow][col])) pivotRow = r;
+        }
+        if (Math.abs(M[pivotRow][col]) < 1e-12) return null; // sistema singular
+        if (pivotRow !== col) {
+          [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
+          [v[col], v[pivotRow]] = [v[pivotRow], v[col]];
+        }
+        for (let r = 0; r < 3; r++) {
+          if (r === col) continue;
+          const factor = M[r][col] / M[col][col];
+          for (let c = col; c < 3; c++) M[r][c] -= factor * M[col][c];
+          v[r] -= factor * v[col];
+        }
       }
-
-      document.getElementById('ieeeReportModal').classList.remove('hidden');
+      return [v[0] / M[0][0], v[1] / M[1][1], v[2] / M[2][2]];
     }
 
-    function closeIEEEReport() {
-      document.getElementById('ieeeReportModal').classList.add('hidden');
-    }
+    async function loadEfficiencyData() {
+      const urlInput = document.getElementById('effJsonUrl');
+      const url = urlInput.value.trim();
+      const statusEl = document.getElementById('effLoadStatus');
+      if (!url) {
+        statusEl.innerText = 'Ingresa la URL raw del JSON antes de cargar.';
+        statusEl.className = 'text-[11px] text-amber-400';
+        return;
+      }
+      try { localStorage.setItem(EFF_URL_STORAGE_KEY, url); } catch (e) { /* almacenamiento no disponible, se ignora */ }
 
-    function switchTab(tab) {
-      document.getElementById('tabSim').classList.add('hidden');
-      document.getElementById('tabDoe').classList.add('hidden');
-      document.getElementById('tabWeaver').classList.add('hidden');
-      document.getElementById('tabOven').classList.add('hidden');
-      document.getElementById('tabAir').classList.add('hidden');
-      document.getElementById('tabMet').classList.add('hidden');
-
-      const inactive = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition-all";
-      const active = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-cyan-400 border-b-2 border-cyan-400 transition-all";
-
-      document.getElementById('btnTabSim').className = inactive;
-      document.getElementById('btnTabDoe').className = inactive;
-      document.getElementById('btnTabWeaver').className = inactive;
-      document.getElementById('btnTabOven').className = inactive;
-      document.getElementById('btnTabAir').className = inactive;
-      document.getElementById('btnTabMet').className = inactive;
-
-      if (tab === 'sim') {
-        document.getElementById('tabSim').classList.remove('hidden');
-        document.getElementById('btnTabSim').className = active;
-      } else if (tab === 'doe') {
-        document.getElementById('tabDoe').classList.remove('hidden');
-        document.getElementById('btnTabDoe').className = active;
-        runDoESweep();
-      } else if (tab === 'weaver') {
-        document.getElementById('tabWeaver').classList.remove('hidden');
-        document.getElementById('btnTabWeaver').className = active;
-        runWeaverAnalysis();
-      } else if (tab === 'oven') {
-        document.getElementById('tabOven').classList.remove('hidden');
-        document.getElementById('btnTabOven').className = active;
-        runOvenSimulation();
-      } else if (tab === 'air') {
-        document.getElementById('tabAir').classList.remove('hidden');
-        document.getElementById('btnTabAir').className = active;
-        runAirEquivalence();
-      } else if (tab === 'met') {
-        document.getElementById('tabMet').classList.remove('hidden');
-        document.getElementById('btnTabMet').className = active;
-        runMetrology();
-        runKcCalibration();
-        runPowerCorrectionCalc();
+      statusEl.innerText = 'Cargando...';
+      statusEl.className = 'text-[11px] text-zinc-500';
+      try {
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (!data || !Array.isArray(data.ensayosEficiencia)) {
+          throw new Error('El JSON no tiene el formato esperado ({ "ensayosEficiencia": [...] })');
+        }
+        effLoadedData = data.ensayosEficiencia;
+        renderEfficiencyTable();
+        runEfficiencyRegression();
+        statusEl.innerText = 'Cargado: ' + effLoadedData.length + ' ensayo(s) desde GitHub.';
+        statusEl.className = 'text-[11px] text-emerald-400';
+      } catch (err) {
+        statusEl.innerText = 'No se pudo cargar: ' + err.message + ' (verifica la URL raw y que el archivo sea público)';
+        statusEl.className = 'text-[11px] text-rose-400';
       }
     }
 
-    window.onload = function() {
-      initChart();
-      updatePcfDisplay();
-      onBurnerTypeChange();
-    };
-  </script>
-</body>
-</html>
+    function renderEfficiencyTable() {
+      const body = document.getElementById('effDataBody');
+      if (effLoadedData.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>';
+        return;
+      }
+      let html = '';
+      effLoadedData.forEach(row => {
+        const nombre = (row.producto !== undefined && row.producto !== null) ? String(row.producto) : '—';
+        const hp = (typeof row.hPot === 'number') ? row.hPot.toFixed(1) : '—';
+        const lam = (typeof row.lambda === 'number') ? row.lambda.toFixed(3) : '—';
+        const eff = (typeof row.eficienciaReal === 'number') ? row.eficienciaReal.toFixed(2) + ' %' : '—';
+        html += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + nombre + '</td><td class="text-right text-cyan-400">' + hp + '</td><td class="text-right text-cyan-400">' + lam + '</td><td class="text-right text-emerald-400">' + eff + '</td></tr>';
+      });
+      body.innerHTML = html;
+    }
 
+    // Regresión lineal múltiple (mínimos cuadrados) para:
+    //   effPct = base - slopeHPot·max(0,hPot-20) - slopeLambda·max(0,λ-0.7)
+    // Reescrita como effPct = base + coefH·x1 + coefL·x2 (coefH = -slopeHPot,
+    // coefL = -slopeLambda) y resuelta vía ecuaciones normales (X^T X)β=X^T y.
+    function runEfficiencyRegression() {
+      const valid = effLoadedData.filter(r =>
+        typeof r.hPot === 'number' && typeof r.lambda === 'number' && typeof r.eficienciaReal === 'number'
+      );
 
+      const applyBtn = document.getElementById('effApplyBtn');
+      const coefsEl = document.getElemen
