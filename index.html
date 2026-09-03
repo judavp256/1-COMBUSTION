@@ -562,6 +562,19 @@
         <p class="text-[10px] text-zinc-500 mt-1.5">Si ya mediste el diámetro del inyector con precisión (galgas de pasador), usa el segundo modo: es el camino más directo para obtener Cd a partir del caudal de aire con descarga a la atmósfera.</p>
       </div>
 
+      <div class="bg-zinc-950/60 p-3 rounded-md border border-amber-500/30">
+        <label class="flex items-start gap-2 text-xs text-zinc-300 cursor-pointer">
+          <input type="checkbox" id="airPreCorrected" onchange="onAirPreCorrectedChange()" class="mt-0.5 accent-amber-500">
+          <span>El caudal ya viene corregido a condiciones estándar por el instrumento (ej. "SLph")</span>
+        </label>
+        <p class="text-[10px] text-zinc-500 mt-1.5">Actívalo si tu equipo de banco ya normaliza el caudal internamente. Si lo marcas, la plataforma <span class="text-amber-400 font-semibold">no</span> vuelve a aplicar su propia corrección de presión atmosférica sobre este dato (evita corregir dos veces).</p>
+        <div id="fieldAirRefTemp" class="hidden mt-2.5">
+          <label class="text-xs text-zinc-400">Temperatura de Referencia del Instrumento (°C)</label>
+          <input type="number" id="airRefTempC" value="0" step="0.1" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <p class="text-[10px] text-zinc-500 mt-1.5">La plataforma usa como referencia interna 15°C (288.15 K, densidad estándar ISA de 1.225 kg/m³, la misma que usa la NTC 2832 en su ecuación de corrección). Si tu instrumento normaliza a otra temperatura (comúnmente 0°C), este campo remapea entre ambas referencias.</p>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-zinc-400">Caudal de Aire Medido en Banco Frío (L/h)</label>
@@ -1351,22 +1364,53 @@
       runAirEquivalence();
     }
 
+    function onAirPreCorrectedChange() {
+      const checked = document.getElementById('airPreCorrected').checked;
+      document.getElementById('fieldAirRefTemp').classList.toggle('hidden', !checked);
+      runAirEquivalence();
+    }
+
+    // Densidad estándar ISA (1.225 kg/m3) usada en todo el simulador está
+    // definida a 15°C (288.15 K), 1013.25 mbar -- la misma referencia que usa
+    // la NTC 2832 en su ecuación de corrección de caudal (ver eq. 6-7, NTC
+    // 2832-1 pág. 80). Si el instrumento del banco ya normaliza el caudal a
+    // OTRA temperatura de referencia (comúnmente 0°C), hay que remapear entre
+    // ambas referencias antes de usar el dato -- son ambas "condiciones
+    // estándar" válidas, pero no la MISMA condición estándar.
+    const PLATFORM_REF_TEMP_K = 288.15;
+
     function runAirEquivalence() {
-      const qAir = parseFloat(document.getElementById('airQ').value);
+      const qAirRaw = parseFloat(document.getElementById('airQ').value);
       const pAir = parseFloat(document.getElementById('airP').value);
       const pGas = parseFloat(document.getElementById('gasP').value);
       const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
       const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
       const gas = GASES[gasKey];
       const mode = document.getElementById('airCalcMode').value;
+      const preCorrected = document.getElementById('airPreCorrected').checked;
+
+      // Si el caudal ya viene corregido por el instrumento (ej. SLph), no se
+      // vuelve a aplicar la corrección de presión atmosférica -- ya está
+      // incluida en esa normalización -- pero sí se remapea la temperatura de
+      // referencia del instrumento a la referencia interna de la plataforma
+      // (288.15 K), para no mezclar dos "condiciones estándar" distintas.
+      let qAir = qAirRaw;
+      let pressRatioAirEffective;
+      if (preCorrected) {
+        const refTempC = parseFloat(document.getElementById('airRefTempC').value);
+        const refTempK = 273.15 + refTempC;
+        const tempRemapFactor = PLATFORM_REF_TEMP_K / refTempK;
+        qAir = qAirRaw * tempRemapFactor;
+        pressRatioAirEffective = 1.0;
+      } else {
+        pressRatioAirEffective = (pAtm + pAir) / 1013.25;
+      }
 
       // Misma corrección de presión atmosférica (pressRatio) que usa
-      // runSimulation(), aplicada simétricamente al ensayo de aire y al de
-      // gas, para que ambas pestañas describan el mismo fenómeno físico de
-      // forma consistente en vez de con fórmulas desincronizadas.
+      // runSimulation(), aplicada al lado del gas para que ambas pestañas
+      // describan el mismo fenómeno físico de forma consistente.
       const pressRatioGas = (pAtm + pGas) / 1013.25;
-      const pressRatioAir = (pAtm + pAir) / 1013.25;
-      const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (pressRatioGas / pressRatioAir);
+      const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (pressRatioGas / pressRatioAirEffective);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
 
       document.getElementById('airQGas').innerText = qGasEst.toFixed(1) + " L/h";
@@ -1380,11 +1424,11 @@
         const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
         const areaInjKnown = (Math.PI / 4.0) * Math.pow(dInjKnown / 1000.0, 2);
         const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
-        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir * pressRatioAir);
+        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir * pressRatioAirEffective);
         document.getElementById('airCdResult').innerText = cdCalc.toFixed(3);
       } else {
         const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
-        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * vIdealAir * pressRatioAir)) * 4.0 / Math.PI) * 1000.0;
+        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * vIdealAir * pressRatioAirEffective)) * 4.0 / Math.PI) * 1000.0;
         document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
       }
     }
