@@ -1682,4 +1682,186 @@
       );
 
       const applyBtn = document.getElementById('effApplyBtn');
-      const coefsEl = document.getElemen
+      const coefsEl = document.getElementById('effCoefsDisplay');
+      const r2El = document.getElementById('effR2Display');
+
+      if (valid.length < 3) {
+        coefsEl.innerText = effBase.toFixed(3) + ' / ' + effSlopeHPot.toFixed(3) + ' / ' + effSlopeLambda.toFixed(3) + ' (sin recalibrar, se necesitan ≥3 ensayos válidos)';
+        r2El.innerText = valid.length > 0 ? ('Solo ' + valid.length + ' ensayo(s) con hPot, λ y eficienciaReal numéricos -- faltan datos para calibrar.') : '';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.effBase;
+        return;
+      }
+
+      let Sxx1 = 0, Sxx2 = 0, Sx1x2 = 0, Sx1 = 0, Sx2 = 0, Sx1y = 0, Sx2y = 0, Sy = 0;
+      const n = valid.length;
+      valid.forEach(r => {
+        const x1 = Math.max(0, r.hPot - 20.0);
+        const x2 = Math.max(0, r.lambda - 0.7);
+        const y = r.eficienciaReal;
+        Sxx1 += x1 * x1; Sxx2 += x2 * x2; Sx1x2 += x1 * x2;
+        Sx1 += x1; Sx2 += x2; Sx1y += x1 * y; Sx2y += x2 * y; Sy += y;
+      });
+
+      const A = [
+        [n, Sx1, Sx2],
+        [Sx1, Sxx1, Sx1x2],
+        [Sx2, Sx1x2, Sxx2]
+      ];
+      const b = [Sy, Sx1y, Sx2y];
+      const sol = solve3x3(A, b);
+
+      if (!sol) {
+        coefsEl.innerText = 'No se pudo calibrar (datos insuficientemente variados, sistema singular).';
+        r2El.innerText = '';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.effBase;
+        return;
+      }
+
+      const [base, coefH, coefL] = sol;
+      const slopeH = -coefH;
+      const slopeL = -coefL;
+
+      // R^2 para transparencia sobre qué tan bien ajusta la calibración
+      const meanY = Sy / n;
+      let ssRes = 0, ssTot = 0;
+      valid.forEach(r => {
+        const x1 = Math.max(0, r.hPot - 20.0);
+        const x2 = Math.max(0, r.lambda - 0.7);
+        const pred = base + coefH * x1 + coefL * x2;
+        ssRes += Math.pow(r.eficienciaReal - pred, 2);
+        ssTot += Math.pow(r.eficienciaReal - meanY, 2);
+      });
+      const r2 = ssTot > 0 ? (1 - ssRes / ssTot) : null;
+
+      coefsEl.innerText = base.toFixed(3) + ' / ' + slopeH.toFixed(3) + ' / ' + slopeL.toFixed(3) + ' (calculado con n=' + n + ')';
+      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'recuerda: correlación aproximada, no el ensayo calorimétrico real de la NTC 2832-2.';
+      applyBtn.disabled = false;
+      applyBtn.dataset.effBase = base.toFixed(4);
+      applyBtn.dataset.effSlopeH = slopeH.toFixed(4);
+      applyBtn.dataset.effSlopeL = slopeL.toFixed(4);
+      applyBtn.dataset.effN = String(n);
+    }
+
+    function applyEfficiencyCalibration() {
+      const btn = document.getElementById('effApplyBtn');
+      if (!btn.dataset.effBase) return;
+      effBase = parseFloat(btn.dataset.effBase);
+      effSlopeHPot = parseFloat(btn.dataset.effSlopeH);
+      effSlopeLambda = parseFloat(btn.dataset.effSlopeL);
+      effCalibCount = parseInt(btn.dataset.effN, 10);
+      updateEffCalibStatus();
+      runSimulation();
+      switchTab('sim');
+    }
+
+    function updateEffCalibStatus() {
+      const el = document.getElementById('effCalibStatus');
+      if (!el) return;
+      if (effCalibCount > 0) {
+        el.innerText = 'Calibrado con ' + effCalibCount + ' ensayo(s) real(es)';
+        el.className = 'text-[10px] text-violet-400';
+      } else {
+        el.innerText = 'Sin calibrar — usando valores por defecto';
+        el.className = 'text-[10px] text-zinc-500';
+      }
+    }
+
+    function generateIEEEReport() {
+      const burnerType = getBurnerType();
+      const pNom = document.getElementById('resPower').innerText;
+      const coVal = document.getElementById('resCO').innerText;
+      const effVal = document.getElementById('resEff').innerText;
+      const flameVal = document.getElementById('flameStatusBadge').innerText;
+
+      const archLabel = burnerType === 'cerrado'
+        ? 'Cerrado (inyector integrado en difusor, línea hermética)'
+        : 'Abierto (venturi con tubo mezclador y arrastre de aire)';
+      document.getElementById('repBurnerType').innerText = archLabel;
+      document.getElementById('repPower').innerText = pNom;
+      document.getElementById('repCO').innerText = coVal;
+      document.getElementById('repEff').innerText = effVal;
+      document.getElementById('repFlame').innerText = flameVal;
+
+      const methodologyBase = "El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:";
+      document.getElementById('ieeeMethodologyText').innerText = burnerType === 'cerrado'
+        ? methodologyBase + " (Arquitectura cerrada: arrastre modelado mediante coeficiente Kc específico de geometría, sin tramo de mezcla previo al difusor)."
+        : methodologyBase + " (Arquitectura abierta: el arrastre incluye la pérdida de carga por fricción en el tubo mezclador según su longitud)."
+
+      document.getElementById('ieeeClosedBurnerNote').classList.toggle('hidden', burnerType !== 'cerrado');
+
+      const pcfNote = document.getElementById('ieeePowerCorrectionNote');
+      const pcfActive = Math.abs(powerCorrectionFactor - 1.0) > 0.001;
+      pcfNote.classList.toggle('hidden', !pcfActive);
+      if (pcfActive) {
+        pcfNote.innerText = "Nota: la potencia reportada incluye un factor de corrección de sitio de " + powerCorrectionFactor.toFixed(3) + ", calibrado a partir de ensayos reales de combustión (Predicho × Factor ≈ Real), para compensar efectos no modelados explícitamente (enfriamiento del gas al expandirse, variación barométrica, transferibilidad del coeficiente de descarga entre aire y gas real).";
+      }
+
+      document.getElementById('ieeeReportModal').classList.remove('hidden');
+    }
+
+    function closeIEEEReport() {
+      document.getElementById('ieeeReportModal').classList.add('hidden');
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabSim').classList.add('hidden');
+      document.getElementById('tabDoe').classList.add('hidden');
+      document.getElementById('tabWeaver').classList.add('hidden');
+      document.getElementById('tabOven').classList.add('hidden');
+      document.getElementById('tabAir').classList.add('hidden');
+      document.getElementById('tabMet').classList.add('hidden');
+
+      const inactive = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition-all";
+      const active = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-cyan-400 border-b-2 border-cyan-400 transition-all";
+
+      document.getElementById('btnTabSim').className = inactive;
+      document.getElementById('btnTabDoe').className = inactive;
+      document.getElementById('btnTabWeaver').className = inactive;
+      document.getElementById('btnTabOven').className = inactive;
+      document.getElementById('btnTabAir').className = inactive;
+      document.getElementById('btnTabMet').className = inactive;
+
+      if (tab === 'sim') {
+        document.getElementById('tabSim').classList.remove('hidden');
+        document.getElementById('btnTabSim').className = active;
+      } else if (tab === 'doe') {
+        document.getElementById('tabDoe').classList.remove('hidden');
+        document.getElementById('btnTabDoe').className = active;
+        runDoESweep();
+      } else if (tab === 'weaver') {
+        document.getElementById('tabWeaver').classList.remove('hidden');
+        document.getElementById('btnTabWeaver').className = active;
+        runWeaverAnalysis();
+      } else if (tab === 'oven') {
+        document.getElementById('tabOven').classList.remove('hidden');
+        document.getElementById('btnTabOven').className = active;
+        runOvenSimulation();
+      } else if (tab === 'air') {
+        document.getElementById('tabAir').classList.remove('hidden');
+        document.getElementById('btnTabAir').className = active;
+        runAirEquivalence();
+      } else if (tab === 'met') {
+        document.getElementById('tabMet').classList.remove('hidden');
+        document.getElementById('btnTabMet').className = active;
+        runMetrology();
+        runKcCalibration();
+        runPowerCorrectionCalc();
+      }
+    }
+
+    window.onload = function() {
+      initChart();
+      updatePcfDisplay();
+      updateEffCalibStatus();
+      onBurnerTypeChange();
+
+      let savedUrl = null;
+      try { savedUrl = localStorage.getItem(EFF_URL_STORAGE_KEY); } catch (e) { /* almacenamiento no disponible */ }
+      document.getElementById('effJsonUrl').value = savedUrl || EFF_DEFAULT_URL;
+      loadEfficiencyData();
+    };
+  </script>
+</body>
+</html>
