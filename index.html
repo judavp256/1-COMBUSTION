@@ -225,7 +225,7 @@
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
           <div>
             <span class="text-xs font-semibold text-zinc-300 block">Factor de Corrección de Sitio</span>
-            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real</span>
+            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real (calibrado en Metrología)</span>
           </div>
           <div class="text-right shrink-0">
             <span id="pcfDisplay" class="text-cyan-400 font-bold font-mono block">1.000</span>
@@ -502,16 +502,25 @@
           </div>
           <p class="text-[10px] text-zinc-500 mt-1.5">Los datos en SLph del manual vienen a $0^\circ\text{C}$ ($273.15\text{ K}$). El sistema los multiplica automáticamente por $\frac{288.15}{273.15} = 1.0549$ para llevarlos a $15^\circ\text{C}$ de la norma NTC 2832-1.</p>
         </div>
-        <label class="flex items-start gap-2 text-xs text-zinc-300 cursor-pointer">
-          <input type="checkbox" id="airAltCorrected" onchange="runAirEquivalence()" class="mt-0.5 accent-amber-500">
-          <span>El caudal ya incluye la corrección de presión atmosférica/altitud local del banco</span>
-        </label>
+
+        <!-- EXPLICACIÓN CLARA DEL CHECKBOX DE ALTITUD -->
+        <div class="bg-zinc-900 p-3 rounded-md border border-zinc-700 space-y-1.5">
+          <label class="flex items-start gap-2 text-xs text-zinc-200 font-semibold cursor-pointer">
+            <input type="checkbox" id="airAltCorrected" onchange="runAirEquivalence()" class="mt-0.5 accent-cyan-400 w-4 h-4">
+            <span>¿El caudalímetro del banco ya aplica corrección por altitud barométrica local?</span>
+          </label>
+          <p class="text-[10px] text-zinc-400 leading-relaxed pl-6">
+            💡 <strong class="text-cyan-300">Guía rápida:</strong><br>
+            • <strong class="text-emerald-400">DEJAR DESMARCADO (Recomendado el 99% de las veces):</strong> Si tu banco te da el dato directamente en <strong>SLph</strong> (Standard Liters per hour) o si usa la referencia fija de fábrica de 1013.25 mbar. La plataforma se encarga de aplicar la corrección por la altitud barométrica de tu ciudad.<br>
+            • <strong class="text-amber-400">MARCAR SOLO SI:</strong> Un software de metrología externo o tú mismo ya aplicaste la ecuación de altitud de la NTC 2832-1 a ese número usando la presión barométrica medida ese día.
+          </p>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-zinc-400">Caudal de Aire Medido en Banco Frío (L/h ó SLph)</label>
-          <input type="number" id="airQ" value="140.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <input type="number" id="airQ" value="200.1" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
           <label class="text-xs text-zinc-400">Presión de Ensayo en el Banco de Aire (mbar)</label>
@@ -520,7 +529,7 @@
         </div>
         <div id="fieldAirDInj" class="hidden">
           <label class="text-xs text-zinc-400">Diámetro del Inyector Medido (mm)</label>
-          <input type="number" id="airDInjKnown" value="1.15" step="0.01" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <input type="number" id="airDInjKnown" value="0.99" step="0.01" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
           <label class="text-xs text-zinc-400">Presión Nominal del Gas en el Producto Montado (mbar)</label>
@@ -530,7 +539,7 @@
         <div>
           <label class="text-xs text-zinc-400">Gas Objetivo de Evaluación</label>
           <select id="airGasTarget" onchange="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white">
-            <option value="G20">Gas Natural G20 (dr = 0.555)</option>
+            <option value="G20" selected>Gas Natural G20 (dr = 0.555)</option>
             <option value="G31">Propano G31 (dr = 1.550)</option>
           </select>
         </div>
@@ -540,9 +549,20 @@
       <div id="airResultCard" class="p-4 bg-zinc-950 rounded-md border border-cyan-500/30 space-y-2">
         <h3 class="text-xs font-bold font-mono tracking-wide text-cyan-300">Resultados de Predicción Neumática:</h3>
         <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Aire Ajustado a 15°C: <span id="airQ15" class="font-bold text-cyan-400 font-mono">0 L/h</span></p>
-        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Aire Estimado en el Producto (a Presión Nominal Gas): <span id="airQAirSistema" class="font-bold text-violet-400 font-mono">0 L/h</span></p>
-        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Gas Estimado en el Producto: <span id="airQGas" class="font-bold text-emerald-400 font-mono">0 L/h</span></p>
-        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-cyan-400 font-mono">0 kW</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Aire Estimado en Producto Montado (a Presión Gas): <span id="airQAirSistema" class="font-bold text-violet-400 font-mono">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Gas Estimado (Inyector Libre sin Pérdidas de Tren): <span id="airQGas" class="font-bold text-emerald-400 font-mono">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Potencia Térmica Estimada (Inyector Libre): <span id="airPGas" class="font-bold text-cyan-400 font-mono">0 kW</span></p>
+        
+        <!-- Factor de Tren de Gas Calibrado con Tu Ensayo Real -->
+        <div class="mt-3 p-3 bg-zinc-900 rounded-md border border-emerald-500/30 space-y-1 text-xs">
+          <span class="font-bold text-emerald-400 block font-mono">💡 Análisis de Tu Ejercicio Real de Laboratorio (Inyector 0.99 mm):</span>
+          <p class="text-zinc-300">
+            • <strong>Caudal de Aire del Sistema Completo:</strong> Predicho: <span class="text-cyan-300 font-mono">133.0 L/h</span> vs Medido Real: <span class="text-emerald-400 font-mono">131.8 L/h</span> (¡Coincidencia del <strong>99.1%</strong> en aire!).<br>
+            • <strong>Caudal de Gas & Potencia:</strong> El inyector libre predice <span class="text-cyan-300 font-mono">1.87 kW</span> (178.5 L/h). Al montarlo en el producto real (con válvula, codo y rampa), la caída de presión del tren reduce la potencia a <span class="text-emerald-400 font-mono">1.69 kW</span> (160.55 L/h).<br>
+            • <strong>Factor del Tren de Gas:</strong> <span class="font-mono text-amber-400">1.69 kW / 1.87 kW = 0.9037 (pérdida hidráulica del ~9.6% en la línea)</span>. Puedes usar este factor en el Simulador para que la predicción coincida exactamente al 100%.
+          </p>
+        </div>
+
         <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
         <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
         <div id="rowAirApply" class="hidden pt-2">
@@ -640,9 +660,9 @@
           <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800 sm:col-span-1">
             <span class="text-[11px] text-zinc-500 block font-medium mb-1">Ensayo 1</span>
             <label class="text-[10px] text-zinc-500">Predicha (kW)</label>
-            <input type="number" id="pcfPred1" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            <input type="number" id="pcfPred1" value="1.87" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
             <label class="text-[10px] text-zinc-500 mt-1.5 block">Real (kW)</label>
-            <input type="number" id="pcfReal1" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            <input type="number" id="pcfReal1" value="1.69" step="0.01" oninput="runPowerCorrectionCalc()" class="w-full mt-0.5 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
           </div>
           <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800 sm:col-span-1">
             <span class="text-[11px] text-zinc-500 block font-medium mb-1">Ensayo 2</span>
@@ -1270,13 +1290,14 @@
       runAirEquivalence();
     }
 
-    const PLATFORM_REF_TEMP_K = 288.15; // 15°C (288.15 K)
+    const PLATFORM_REF_TEMP_K = 288.15; // 15°C
 
-    // Presets rápidos para el banco de pruebas de laboratorio
     function setAirPreset(preset) {
       if (preset === 'slph_49') {
         document.getElementById('airP').value = 49.0;
         document.getElementById('airRefTempC').value = 0.0;
+        document.getElementById('airQ').value = 200.1;
+        document.getElementById('airDInjKnown').value = 0.99;
       } else if (preset === 'std_10') {
         document.getElementById('airP').value = 10.0;
         document.getElementById('airRefTempC').value = 15.0;
@@ -1290,7 +1311,7 @@
     }
 
     // ==========================================================
-    // PESTAÑA "AIRE" (EQUIVALENCIA NEUMÁTICA COLD TEST) — REVISIÓN EXACTA
+    // PESTAÑA "AIRE" (EQUIVALENCIA NEUMÁTICA COLD TEST)
     // ==========================================================
     function runAirEquivalence() {
       const qAirRaw = parseFloat(document.getElementById('airQ').value);
@@ -1302,9 +1323,7 @@
       const mode = document.getElementById('airCalcMode').value;
       const altCorrected = document.getElementById('airAltCorrected').checked;
 
-      // 1. Remapeo de temperatura del caudalímetro a 15 °C (288.15 K)
-      // Ejemplo: si el manual especifica SLph a 0 °C (273.15 K):
-      // tempRemapFactor = 288.15 / 273.15 = 1.05491
+      // 1. Remapeo de temperatura a 15 °C (288.15 K)
       const refTempC = parseFloat(document.getElementById('airRefTempC').value);
       const refTempK = 273.15 + (isFinite(refTempC) ? refTempC : 0.0);
       const tempRemapFactor = PLATFORM_REF_TEMP_K / refTempK;
@@ -1312,16 +1331,15 @@
 
       document.getElementById('airQ15').innerText = qAir15.toFixed(1) + " L/h";
 
-      // 2. Factores de densidad a condiciones de sitio (Patm, p) por Bernoulli
+      // 2. Factores de densidad a condiciones de sitio por Bernoulli
       const airSideFactor = altCorrected ? 1.0 : densityCorrectionFactor(pAtm, pAir);
       const gasSideFactor = densityCorrectionFactor(pAtm, pGas);
 
-      // 3. Caudal de aire a la presión nominal del producto montado (sin convertir a gas):
+      // 3. Caudal de aire a la presión nominal del producto montado:
       const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
       document.getElementById('airQAirSistema').innerText = qAirSistemaEst.toFixed(1) + " L/h";
 
-      // 4. Ecuación Neumática Exacta de Conversión Aire -> Gas:
-      // Q_gas,std = Q_air15 * (1 / sqrt(dr)) * sqrt(pGas / pAir) * sqrt((Patm + pGas)/(Patm + pAir))
+      // 4. Caudal de gas e inyector libre:
       const qGasEst = qAir15 * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
 
@@ -1706,7 +1724,7 @@
       document.getElementById('repBurnerType').innerText = archLabel;
       document.getElementById('repPower').innerText = pNom;
       document.getElementById('repCO').innerText = coVal;
-      document.getElementById('repEff').innerText = effEffVal = effVal;
+      document.getElementById('repEff').innerText = effVal;
       document.getElementById('repFlame').innerText = flameVal;
 
       const methodologyBase = "El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:";
