@@ -25,17 +25,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Evita que los <select>/<option> nativos del navegador se rendericen
-       en blanco por defecto sobre una interfaz oscura */
-    html {
-      color-scheme: dark;
-    }
-
-    /* OPTIMIZACIÓN TÁCTIL PARA MÓVILES Y TABLETS */
-    html, body {
-      touch-action: manipulation;
-    }
-
+    html { color-scheme: dark; }
+    html, body { touch-action: manipulation; }
     body {
       background-color: #090c10;
       background-image:
@@ -44,11 +35,7 @@
       background-size: 28px 28px;
       background-attachment: fixed;
     }
-
-    /* Slider tipo "fader" de instrumento */
-    input[type="range"] {
-      accent-color: #22d3ee;
-    }
+    input[type="range"] { accent-color: #22d3ee; }
     .slider-thumb::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
@@ -73,42 +60,14 @@
       border-radius: 2px;
       background: #1c2733;
     }
-
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .scope-panel { position: relative; }
+    .scope-panel::before, .scope-panel::after {
+      content: ''; position: absolute; width: 14px; height: 14px; pointer-events: none; z-index: 10;
     }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* Panel tipo "instrumento de banco de pruebas": marcas de esquina en las
-       vistas hero (llama y mapa DoE), reservado a solo dos paneles a propósito. */
-    .scope-panel {
-      position: relative;
-    }
-    .scope-panel::before,
-    .scope-panel::after {
-      content: '';
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .scope-panel::before {
-      top: -1px;
-      left: -1px;
-      border-top: 2px solid #3fd0ff;
-      border-left: 2px solid #3fd0ff;
-    }
-    .scope-panel::after {
-      bottom: -1px;
-      right: -1px;
-      border-bottom: 2px solid #3fd0ff;
-      border-right: 2px solid #3fd0ff;
-    }
-
+    .scope-panel::before { top: -1px; left: -1px; border-top: 2px solid #3fd0ff; border-left: 2px solid #3fd0ff; }
+    .scope-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid #3fd0ff; border-right: 2px solid #3fd0ff; }
     .scope-grid {
       background-color: #0a0e13;
       background-image:
@@ -116,38 +75,18 @@
         linear-gradient(90deg, rgba(63,208,255,0.08) 1px, transparent 1px);
       background-size: 22px 22px;
     }
-
-    /* ESTILOS DE IMPRESIÓN FORMATO ARTÍCULO IEEE (sin cambios de fondo) */
     @media print {
-      body * {
-        visibility: hidden;
-      }
-      #ieeeReportModal, #ieeeReportModal * {
-        visibility: visible;
-      }
-      #ieeeReportModal {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: white !important;
-        color: black !important;
-        padding: 0 !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .ieee-columns {
-        column-count: 2;
-        column-gap: 2rem;
-        text-align: justify;
-      }
+      body * { visibility: hidden; }
+      #ieeeReportModal, #ieeeReportModal * { visibility: visible; }
+      #ieeeReportModal { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .ieee-columns { column-count: 2; column-gap: 2rem; text-align: justify; }
     }
   </style>
 </head>
 <body class="bg-transparent text-zinc-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-zinc-950">
 
-  <!-- Header Responsivo para PC, Móvil y Tablet -->
+  <!-- Header Responsivo -->
   <header class="bg-zinc-900/95 border-b border-cyan-500/20 p-3 sm:p-4 no-print sticky top-0 z-40 backdrop-blur-md">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
       <div class="flex justify-between items-center">
@@ -157,13 +96,12 @@
           </h1>
           <p class="text-[11px] sm:text-xs text-zinc-500 font-mono">Simulación y Certificación Normativa · NTC 2832-1 / NTC 2832-2</p>
         </div>
-        <!-- Botón de Generar Reporte visible en barra móvil -->
         <button onclick="generateIEEEReport()" class="md:hidden px-2.5 py-1.5 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 flex items-center gap-1">
           <span>📄</span> IEEE
         </button>
       </div>
 
-      <!-- Menú de Pestañas estilo barra de instrumentos (subrayado) -->
+      <!-- Menú de Pestañas -->
       <div class="flex items-center gap-4 overflow-x-auto no-scrollbar py-1 max-w-full border-t border-zinc-800 md:border-none pt-2 md:pt-0">
         <button id="btnTabSim" onclick="switchTab('sim')" class="shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-cyan-400 border-b-2 border-cyan-400 transition-all">Simulador R&D</button>
         <button id="btnTabDoe" onclick="switchTab('doe')" class="shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition-all">🎯 DoE Segura</button>
@@ -183,21 +121,18 @@
     <!-- TAB 1: SIMULADOR DE COMBUSTIÓN R&D -->
     <div id="tabSim" class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
       
-      <!-- Panel de Controles (Izquierda) -->
+      <!-- Panel de Controles -->
       <div class="lg:col-span-5 bg-zinc-900 p-4 sm:p-5 rounded-md border border-zinc-800 space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-zinc-200 border-b border-zinc-800 pb-2">⚙️ Parámetros de Diseño y Sitio</h2>
 
-        <!-- Arquitectura del Quemador -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-cyan-500/25">
           <label class="text-xs font-semibold text-cyan-300">Arquitectura del Sistema de Combustión</label>
           <select id="burnerType" onchange="onBurnerTypeChange()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white">
             <option value="abierto" selected>Quemador Abierto (venturi + tubo mezclador con arrastre)</option>
             <option value="cerrado">Quemador Cerrado (inyector en difusor, línea de gas hermética)</option>
           </select>
-          <p class="text-[10px] text-zinc-500 mt-1.5">Abierto: el inyector descarga en un tubo con toma de aire por arrastre antes del difusor. Cerrado: el inyector está integrado en el difusor y la mezcla ocurre ahí mismo, sin tubo de recorrido previo.</p>
         </div>
 
-        <!-- Altitud / Presión Atmosférica del Sitio -->
         <div>
           <label class="text-xs font-semibold text-zinc-400">Presión Atmosférica del Sitio de Ensayo (mbar)</label>
           <input type="number" id="pAtmSelect" value="1013.25" step="0.1" onchange="runSimulation()" oninput="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
@@ -206,10 +141,8 @@
             <button type="button" onclick="setPAtm(850.0)" class="px-2 py-1 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">~1500 msnm · 850</button>
             <button type="button" onclick="setPAtm(750.0)" class="px-2 py-1 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">~2600 msnm · 750</button>
           </div>
-          <p class="text-[10px] text-zinc-500 mt-1.5">Usa los botones solo como punto de partida — para comparar contra un ensayo real, ingresa la presión barométrica medida ese día, no el valor aproximado de altitud.</p>
         </div>
 
-        <!-- Seleccionar Gas -->
         <div>
           <label class="text-xs font-semibold text-zinc-400">Familia y Tipo de Gas Combustible</label>
           <select id="gasType" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white">
@@ -220,7 +153,6 @@
           </select>
         </div>
 
-        <!-- Diámetro Inyector -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Diámetro del Inyector</span>
@@ -229,7 +161,6 @@
           <input type="range" id="dInj" min="0.50" max="2.50" step="0.01" value="1.15" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Presión de Suministro -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Presión de Suministro de Gas</span>
@@ -238,7 +169,6 @@
           <input type="range" id="pSup" min="5.0" max="60.0" step="0.5" value="18.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Coeficiente de Descarga Cd -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Coeficiente de Descarga del Inyector</span>
@@ -247,37 +177,30 @@
           <input type="range" id="cd" min="0.75" max="0.98" step="0.01" value="0.90" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Diámetro Garganta Venturi / Cámara de Mezcla -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span id="labelThroat" class="text-zinc-300">Diámetro de la Garganta del Venturi</span>
             <span id="valThroat" class="text-cyan-400 font-bold font-mono">12.0 mm</span>
           </div>
           <input type="range" id="dThroat" min="6.0" max="25.0" step="0.5" value="12.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
-          <p id="descThroat" class="text-[10px] text-zinc-500 mt-1.5">Diámetro de la garganta del venturi respecto al inyector: gobierna cuánto aire se induce por efecto jet-pump antes del tubo mezclador.</p>
         </div>
 
-        <!-- Longitud del Tubo Mezclador (solo Abierto) -->
         <div id="fieldLTube" class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Longitud del Tubo Mezclador</span>
             <span id="valLTube" class="text-cyan-400 font-bold font-mono">120 mm</span>
           </div>
           <input type="range" id="lTube" min="30" max="350" step="5" value="120" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
-          <p class="text-[10px] text-zinc-500 mt-1.5">Distancia entre la ventana de arrastre de aire y el difusor. A mayor longitud, mayor pérdida de carga por fricción en la mezcla.</p>
         </div>
 
-        <!-- Coeficiente de Arrastre Base Kc (solo Cerrado) -->
         <div id="fieldKc" class="hidden bg-zinc-950/60 p-3 rounded-md border border-amber-500/40">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Coeficiente de Arrastre Base (Kc)</span>
             <span id="valKc" class="text-amber-400 font-bold font-mono">0.72</span>
           </div>
           <input type="range" id="kc" min="0.40" max="0.95" step="0.01" value="0.72" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
-          <p class="text-[10px] text-amber-400/80 mt-1.5">⚠️ Valor teórico inicial sin calibrar. Ajustar con datos de banco de pruebas específicos de este quemador cerrado en cuanto estén disponibles.</p>
         </div>
 
-        <!-- Área de Puertos -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Área Total de los Puertos</span>
@@ -286,7 +209,6 @@
           <input type="range" id="aPorts" min="50" max="500" step="5" value="180" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Altura Quemador - Recipiente -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70">
           <div class="flex justify-between text-xs font-semibold">
             <span class="text-zinc-300">Distancia del Quemador al Recipiente</span>
@@ -295,17 +217,15 @@
           <input type="range" id="hPot" min="10.0" max="40.0" step="0.5" value="22.0" oninput="runSimulation()" class="w-full mt-2.5 slider-thumb">
         </div>
 
-        <!-- Potencia Declarada Target -->
         <div>
           <label class="text-xs font-semibold text-zinc-400">Potencia Térmica Nominal Declarada (kW)</label>
           <input type="number" id="declaredPower" value="2.00" step="0.05" onchange="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
         </div>
 
-        <!-- Factor de Corrección de Sitio (calibrado contra ensayos reales en Metrología) -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
           <div>
             <span class="text-xs font-semibold text-zinc-300 block">Factor de Corrección de Sitio</span>
-            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real (calibrado en Metrología)</span>
+            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real</span>
           </div>
           <div class="text-right shrink-0">
             <span id="pcfDisplay" class="text-cyan-400 font-bold font-mono block">1.000</span>
@@ -313,7 +233,6 @@
           </div>
         </div>
 
-        <!-- Modelo de Eficiencia (calibrado por regresión contra ensayos reales, solo lectura desde GitHub) -->
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
           <div>
             <span class="text-xs font-semibold text-zinc-300 block">Modelo de Eficiencia (η)</span>
@@ -326,10 +245,9 @@
 
       </div>
 
-      <!-- Panel de Resultados y Visualización (Derecha) -->
+      <!-- Panel de Resultados y Visualización -->
       <div class="lg:col-span-7 space-y-4 sm:space-y-6">
         
-        <!-- Estado Normativo NTC 2832 -->
         <div id="ntcCard" class="p-4 rounded-md border border-emerald-500/30 bg-emerald-500/10 flex justify-between items-center">
           <div>
             <span class="text-[10px] sm:text-xs font-mono tracking-wide text-emerald-400">Dictamen NTC 2832-1</span>
@@ -338,7 +256,6 @@
           <div id="ntcBadge" class="w-10 h-10 sm:w-12 sm:h-12 rounded-md bg-emerald-500 flex items-center justify-center text-zinc-950 font-bold text-lg sm:text-xl shrink-0">✓</div>
         </div>
 
-        <!-- Esquema Gráfico del Quemador y Llama (Canvas 2D) -->
         <div class="bg-zinc-900 p-4 sm:p-5 rounded-md border border-zinc-800">
           <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
             <h3 class="text-xs sm:text-sm font-bold text-zinc-300">🔥 Visualización Térmica de Llama & Arrastre de Aire</h3>
@@ -349,7 +266,6 @@
           </div>
         </div>
 
-        <!-- Indicadores Clave en Grid Adapta Móvil (estilo lectura de instrumento) -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div class="bg-zinc-900 border-l-2 border-cyan-500 rounded-sm p-3.5 sm:p-4">
             <span class="text-[11px] text-zinc-500 block font-medium">Potencia Nominal</span>
@@ -376,7 +292,6 @@
           </div>
         </div>
 
-        <!-- Gráfico de Sensibilidad de Potencia vs Presión -->
         <div class="bg-zinc-900 p-4 sm:p-5 rounded-md border border-zinc-800">
           <h3 class="text-xs sm:text-sm font-bold text-zinc-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión (±8% NTC)</h3>
           <div class="w-full relative">
@@ -387,13 +302,13 @@
       </div>
     </div>
 
-    <!-- TAB 4: DoE VIRTUAL & VENTANA DE OPERACIÓN SEGURA -->
+    <!-- TAB 4: DoE VIRTUAL -->
     <div id="tabDoe" class="hidden space-y-4 sm:space-y-6">
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h2 class="text-lg sm:text-xl font-bold text-emerald-400 flex items-center gap-2">🎯 Ventana de Operación Segura & DoE Virtual</h2>
-            <p class="text-xs text-zinc-400">Exploración matricial de 625 combinaciones para ubicar la Zona Verde de cumplimiento NTC 2832.</p>
+            <p class="text-xs text-zinc-400">Exploración matricial de 625 combinaciones para ubicar la Zona Verde NTC 2832.</p>
           </div>
           <button onclick="runDoESweep()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 font-bold text-zinc-950 rounded-md text-xs sm:text-sm transition-all">⚡ Generar Matriz DoE (625 Puntos)</button>
         </div>
@@ -455,16 +370,16 @@
           </div>
           <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800 text-xs text-zinc-400 space-y-1">
             <span class="font-bold text-amber-400 block">💡 Diagnóstico de Robustez:</span>
-            <p id="doeRobustnessText">El 42.5% de los puntos explorados están en Zona Verde. El diseño es altamente robusto ante fluctuaciones de presión de gas.</p>
+            <p id="doeRobustnessText">El 42.5% de los puntos explorados están en Zona Verde.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 5: ÍNDICES DE WEAVER (INTERCAMBIABILIDAD DE GASES) -->
+    <!-- TAB 5: WEAVER -->
     <div id="tabWeaver" class="hidden bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 max-w-4xl mx-auto space-y-5">
       <h2 class="text-lg sm:text-xl font-bold text-cyan-400 flex items-center gap-2">🔀 Matriz de Intercambiabilidad - Índices de Weaver</h2>
-      <p class="text-xs sm:text-sm text-zinc-400">Evalúa la sustitución entre familias de gas (Gas Natural vs Propano/GLP) mediante los 4 índices fundamentales de intercambiabilidad.</p>
+      <p class="text-xs sm:text-sm text-zinc-400">Evalúa la sustitución entre familias de gas (Gas Natural vs Propano/GLP).</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -513,7 +428,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: QUEMADORES TUBULARES DE HORNO 1D -->
+    <!-- TAB 6: HORNOS 1D -->
     <div id="tabOven" class="hidden bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 max-w-4xl mx-auto space-y-5">
       <h2 class="text-lg sm:text-xl font-bold text-amber-400 flex items-center gap-2">🍞 Simulación 1D de Quemadores Tubulares de Horno</h2>
       <p class="text-xs sm:text-sm text-zinc-400">Calcula la distribución de presión e uniformidad de velocidad puerto por puerto a lo largo del tubo.</p>
@@ -548,36 +463,69 @@
       </div>
     </div>
 
-    <!-- TAB 2: EQUIVALENCIA NEUMÁTICA (COLD TEST) -->
+    <!-- TAB 2: EQUIVALENCIA NEUMÁTICA (COLD TEST - BANCO DE ENSAYO CON AIRE) -->
     <div id="tabAir" class="hidden bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 max-w-4xl mx-auto space-y-5">
-      <h2 class="text-lg sm:text-xl font-bold text-cyan-400 flex items-center gap-2">💨 Módulo de Equivalencia Neumática (Chequeo con Aire)</h2>
-      <p class="text-xs sm:text-sm text-zinc-400">Introduce el caudal de aire medido en frío a la presión de bancada para predecir la potencia real con gas. Incluye la misma corrección de presión atmosférica del sitio (<span class="text-zinc-300 font-mono">pAtm</span>) configurada en el Simulador R&D, para ser consistente con esa pestaña.</p>
+      <div class="border-b border-zinc-800 pb-3">
+        <h2 class="text-lg sm:text-xl font-bold text-cyan-400 flex items-center gap-2">💨 Módulo de Equivalencia Neumática (Chequeo con Aire en Banco)</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Convierte el caudal de aire frío medido en el banco de prueba del inyector solo a la potencia y caudal esperados en el producto montado con gas combustible.</p>
+      </div>
 
-      <div class="bg-zinc-950/60 p-3 rounded-md border border-cyan-500/25">
+      <!-- Presets de Laboratorio -->
+      <div class="bg-zinc-950/80 p-3.5 rounded-md border border-cyan-500/30 space-y-2">
+        <span class="text-xs font-semibold text-cyan-300 block">🎯 Presets Rápidos de Banco de Ensayo de Laboratorio:</span>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="setAirPreset('slph_49')" class="px-3 py-1.5 text-xs font-mono rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900 transition-all">
+            Inyector Solo · Banco 49.0 mbar (SLph @ 0°C)
+          </button>
+          <button type="button" onclick="setAirPreset('std_10')" class="px-3 py-1.5 text-xs font-mono rounded bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-all">
+            Ensayo Estándar · 10.0 mbar (15°C NTC)
+          </button>
+        </div>
+        <p class="text-[10px] text-zinc-500">Al hacer clic en "Inyector Solo", se cargan los $49.0\text{ mbar}$ de presión del banco y los $0^\circ\text{C}$ de referencia del manual (SLph), remoliendo automáticamente a los $15^\circ\text{C}$ requeridos por la norma NTC 2832-1.</p>
+      </div>
+
+      <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800">
         <label class="text-xs font-semibold text-cyan-300">Modo de Cálculo</label>
         <select id="airCalcMode" onchange="onAirModeChange()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white">
           <option value="deff" selected>Conozco Cd (0.90 asumido) → calcular Diámetro Efectivo</option>
           <option value="cd">Conozco el diámetro real medido → calcular Coeficiente de Descarga (Cd)</option>
         </select>
-        <p class="text-[10px] text-zinc-500 mt-1.5">Si ya mediste el diámetro del inyector con precisión (galgas de pasador), usa el segundo modo: es el camino más directo para obtener Cd a partir del caudal de aire con descarga a la atmósfera.</p>
+      </div>
+
+      <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800 space-y-3">
+        <div>
+          <label class="text-xs text-zinc-400">Temperatura de Referencia del Caudalímetro del Banco (°C)</label>
+          <div class="flex gap-2 items-center mt-1">
+            <input type="number" id="airRefTempC" value="0.0" step="0.1" oninput="runAirEquivalence()" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+            <button type="button" onclick="setAirTemp(0.0)" class="px-2.5 py-2 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-700 text-cyan-400 shrink-0">0°C (SLph)</button>
+            <button type="button" onclick="setAirTemp(15.0)" class="px-2.5 py-2 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-700 text-zinc-300 shrink-0">15°C (NTC)</button>
+          </div>
+          <p class="text-[10px] text-zinc-500 mt-1.5">Los datos en SLph del manual vienen a $0^\circ\text{C}$ ($273.15\text{ K}$). El sistema los multiplica automáticamente por $\frac{288.15}{273.15} = 1.0549$ para llevarlos a $15^\circ\text{C}$ de la norma NTC 2832-1.</p>
+        </div>
+        <label class="flex items-start gap-2 text-xs text-zinc-300 cursor-pointer">
+          <input type="checkbox" id="airAltCorrected" onchange="runAirEquivalence()" class="mt-0.5 accent-amber-500">
+          <span>El caudal ya incluye la corrección de presión atmosférica/altitud local del banco</span>
+        </label>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="text-xs text-zinc-400">Caudal de Aire Medido en Banco Frío (L/h)</label>
+          <label class="text-xs text-zinc-400">Caudal de Aire Medido en Banco Frío (L/h ó SLph)</label>
           <input type="number" id="airQ" value="140.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
-          <label class="text-xs text-zinc-400">Presión de Ensayo / Descarga a Atmósfera (mbar)</label>
-          <input type="number" id="airP" value="10.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <label class="text-xs text-zinc-400">Presión de Ensayo en el Banco de Aire (mbar)</label>
+          <input type="number" id="airP" value="49.0" step="0.5" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <span class="text-[10px] text-cyan-400 block mt-0.5">Preset: 49.0 mbar para inyector aislado en banco</span>
         </div>
         <div id="fieldAirDInj" class="hidden">
           <label class="text-xs text-zinc-400">Diámetro del Inyector Medido (mm)</label>
           <input type="number" id="airDInjKnown" value="1.15" step="0.01" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
         </div>
         <div>
-          <label class="text-xs text-zinc-400">Presión Nominal del Gas en Producto (mbar)</label>
-          <input type="number" id="gasP" value="18.0" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <label class="text-xs text-zinc-400">Presión Nominal del Gas en el Producto Montado (mbar)</label>
+          <input type="number" id="gasP" value="18.0" step="0.5" oninput="runAirEquivalence()" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs sm:text-sm text-white font-mono">
+          <span class="text-[10px] text-zinc-500 block mt-0.5">Ej: 18.0 mbar para G20 / 37.0 mbar para G31</span>
         </div>
         <div>
           <label class="text-xs text-zinc-400">Gas Objetivo de Evaluación</label>
@@ -588,20 +536,22 @@
         </div>
       </div>
 
+      <!-- Tarjeta de Resultados Neumáticos -->
       <div id="airResultCard" class="p-4 bg-zinc-950 rounded-md border border-cyan-500/30 space-y-2">
         <h3 class="text-xs font-bold font-mono tracking-wide text-cyan-300">Resultados de Predicción Neumática:</h3>
-        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Gas Estimado: <span id="airQGas" class="font-bold text-emerald-400 font-mono">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Aire Ajustado a 15°C: <span id="airQ15" class="font-bold text-cyan-400 font-mono">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Aire Estimado en el Producto (a Presión Nominal Gas): <span id="airQAirSistema" class="font-bold text-violet-400 font-mono">0 L/h</span></p>
+        <p class="text-xs sm:text-sm text-zinc-300">-&gt; Caudal de Gas Estimado en el Producto: <span id="airQGas" class="font-bold text-emerald-400 font-mono">0 L/h</span></p>
         <p class="text-xs sm:text-sm text-zinc-300">-&gt; Potencia Térmica Estimada: <span id="airPGas" class="font-bold text-cyan-400 font-mono">0 kW</span></p>
         <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
         <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
         <div id="rowAirApply" class="hidden pt-2">
           <button onclick="applyCalibratedCd()" class="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all">Aplicar Diámetro y Cd juntos al Simulador</button>
-          <p class="text-[10px] text-zinc-500 mt-1.5">dInj y Cd vienen de la misma medición — se aplican como par para evitar inconsistencias.</p>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: METROLOGÍA & R&R -->
+    <!-- TAB 3: METROLOGÍA -->
     <div id="tabMet" class="hidden bg-zinc-900 p-4 sm:p-6 rounded-md border border-zinc-800 max-w-4xl mx-auto space-y-5">
       <h2 class="text-lg sm:text-xl font-bold text-violet-400 flex items-center gap-2">📊 Motor Estadístico R&R & Recomendador de Rotulado</h2>
       <p class="text-xs sm:text-sm text-zinc-400">Ingresa las lecturas de potencia medidas en réplicas o muestras del laboratorio (separadas por comas):</p>
@@ -632,14 +582,11 @@
         <p class="text-xs text-zinc-500 mt-1">Banda de Tolerancia Permisible NTC 2832-1 (±8%): <span id="metBand" class="font-mono">0 - 0 kW</span></p>
       </div>
 
-      <!-- CALIBRACIÓN DE Kc (QUEMADOR CERRADO) A PARTIR DE CO MEDIDO -->
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-amber-500/30 space-y-4">
         <div>
           <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">🧮 Calibración de Kc (Quemador Cerrado) a partir de CO Medido</h3>
-          <p class="text-[11px] text-zinc-500 mt-1.5">Despeja Kc invirtiendo la relación CO ↔ λ_primario del modelo, gas por gas. ⚠️ Solo es preciso cuando λ_primario &lt; 0.55 (zona de aireación pobre); si tu quemador certifica correctamente, el CO probablemente esté "saturado" (el modelo no distingue λ=0.55 de λ=0.90) y ese punto se marcará como no confiable. Úsalo como referencia complementaria, prioriza medición directa de flujo cuando sea posible.</p>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Despeja Kc invirtiendo la relación CO ↔ λ_primario del modelo, gas por gas.</p>
         </div>
-
-        <p class="text-[11px] text-zinc-500">Usa el Diámetro de Inyector, el Diámetro Efectivo de Garganta/Cámara de Mezcla y la Distancia al Recipiente configurados actualmente en la pestaña <span class="text-zinc-300 font-semibold">Simulador R&D</span>.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="bg-zinc-950/60 p-2.5 rounded-md border border-zinc-800">
@@ -676,18 +623,17 @@
 
         <div class="bg-zinc-950 p-3.5 rounded-md border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <span class="text-[11px] text-zinc-500 block font-medium">Kc Promedio (solo puntos válidos, no saturados)</span>
+            <span class="text-[11px] text-zinc-500 block font-medium">Kc Promedio</span>
             <span id="kcCalibAvg" class="text-lg font-bold text-emerald-400 font-mono">—</span>
           </div>
           <button onclick="applyCalibratedKc()" id="kcApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all">Usar este Kc en el Simulador</button>
         </div>
       </div>
 
-      <!-- FACTOR DE CORRECCIÓN DE POTENCIA: PREDICHO (SIMULADOR) VS. REAL (ENSAYO) -->
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-cyan-500/30 space-y-4">
         <div>
           <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">📐 Factor de Corrección de Potencia (Predicho vs. Real)</h3>
-          <p class="text-[11px] text-zinc-500 mt-1.5">En vez de modelar cada efecto individual (enfriamiento Joule-Thomson del gas, transferibilidad de Cd aire→gas, variación barométrica), calibra directamente la brecha completa contra tus ensayos reales de combustión. Ingresa pares (Potencia Predicha por el Simulador / Potencia Real Medida) de tus ensayos.</p>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Calibra la relación entre potencia simulada y la medida en ensayo real.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -735,14 +681,12 @@
           </div>
           <button onclick="applyPowerCorrection()" id="pcfApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all">Aplicar Factor en el Simulador</button>
         </div>
-        <p class="text-[10px] text-zinc-500">El factor calibrado se aplica solo a la potencia mostrada (Simulador, curva de sensibilidad y DoE); no altera λ, CO ni la evaluación de estabilidad de llama, porque esos ya se calibran por separado.</p>
       </div>
 
-      <!-- MODELO DE EFICIENCIA: CALIBRACIÓN DE SOLO LECTURA DESDE GITHUB -->
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-violet-500/30 space-y-4">
         <div>
           <h3 class="text-sm font-bold text-violet-400 flex items-center gap-2">📈 Modelo de Eficiencia (η) — Calibración desde Ensayos Reales</h3>
-          <p class="text-[11px] text-zinc-500 mt-1.5">Este panel es de <span class="text-zinc-300 font-semibold">solo lectura</span>: no hay forma de agregar ensayos desde la plataforma. Los datos se administran centralizadamente editando el archivo JSON en GitHub; aquí solo se leen y se ajustan por regresión los coeficientes del modelo (base, sensibilidad a la distancia al recipiente, sensibilidad al exceso de aire primario). Con menos de 3 ensayos válidos no se recalibra nada.</p>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Lee un JSON externo con ensayos calorimétricos reales para ajustar por regresión los coeficientes del modelo.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
@@ -773,38 +717,30 @@
         <div class="bg-zinc-950 p-3.5 rounded-md border border-violet-500/30 space-y-2">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span class="text-[11px] text-zinc-500 block font-medium">Coeficientes Calibrados (base / pendiente hPot / pendiente λ)</span>
+              <span class="text-[11px] text-zinc-500 block font-medium">Coeficientes Calibrados</span>
               <span id="effCoefsDisplay" class="text-sm font-bold text-violet-400 font-mono">58.500 / 0.150 / 5.000 (valores por defecto)</span>
             </div>
             <button onclick="applyEfficiencyCalibration()" id="effApplyBtn" disabled class="px-4 py-2 text-xs font-bold rounded-md bg-violet-500 hover:bg-violet-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 transition-all whitespace-nowrap">Aplicar al Simulador</button>
           </div>
           <p id="effR2Display" class="text-[10px] text-zinc-500"></p>
         </div>
-        <p class="text-[10px] text-zinc-500">Recuerda: sigue siendo una correlación aproximada, no el ensayo calorimétrico real de la NTC 2832-2 (agua + recipiente). Sirve para explorar tendencias, no para certificar un producto específico.</p>
       </div>
     </div>
 
   </main>
 
-  <!-- MODAL / CONTENEDOR DE REPORTE FORMATO IEEE PARA IMPRESIÓN / PDF -->
+  <!-- MODAL IEEE -->
   <div id="ieeeReportModal" class="hidden fixed inset-0 bg-zinc-950/95 z-50 overflow-y-auto p-3 sm:p-10 text-slate-900 font-serif">
-    
     <div class="max-w-4xl mx-auto bg-zinc-900 print:bg-white p-5 sm:p-12 shadow-2xl rounded-sm border border-zinc-800 print:border-slate-300 relative text-zinc-100 print:text-black text-xs leading-relaxed">
-      
-      <!-- BOTONES DE ACCIÓN EN EL MODAL -->
       <div class="no-print absolute top-3 right-3 flex gap-2">
         <button onclick="window.print()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-sans text-xs font-bold rounded shadow">🖨️ Imprimir / PDF (IEEE)</button>
         <button onclick="closeIEEEReport()" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-sans text-xs font-bold rounded">✕ Cerrar</button>
       </div>
-
-      <!-- ENCABEZADO IEEE -->
       <div class="flex justify-between items-center text-[10px] text-zinc-500 print:text-slate-500 border-b border-zinc-800 print:border-slate-300 pb-2 mb-6 font-sans">
         <span>INFORME TÉCNICO DE LABORATORIO DE COMBUSTIÓN</span>
         <span class="hidden sm:inline">NORMATIVA NTC 2832-1 / NTC 2832-2</span>
         <span id="ieeePageNum">PÁGINA 1</span>
       </div>
-
-      <!-- TÍTULO DEL ARTÍCULO IEEE -->
       <div class="text-center mb-6 space-y-2">
         <h1 id="ieeeTitle" class="text-lg sm:text-xl font-bold font-sans tracking-tight text-zinc-50 print:text-black">
           Dictamen Técnico de Evaluación Físico-Matemática y Certificación Normativa de Sistema de Combustión para Gasodomésticos
@@ -813,49 +749,23 @@
           Laboratorio Acreditado de Ensayo y Calibración (ISO/IEC 17025)
         </p>
       </div>
-
-      <!-- RESUMEN / ABSTRACT IEEE -->
       <div class="bg-zinc-950 print:bg-slate-50 p-3.5 sm:p-4 border-t border-b border-zinc-800 print:border-slate-300 mb-6 font-serif">
         <p class="text-justify italic">
-          <strong class="font-bold font-sans not-italic">Resumen –</strong> <span id="ieeeAbstract">Este documento presenta el análisis técnico y la evaluación de conformidad del sistema de combustión según la norma NTC 2832-1 y NTC 2832-2. A través de la simulación de fluidos y termodinámica de premezcla parcial, se determinan la potencia nominal, la tasa de aireación primaria, las emisiones de CO neutro y el rendimiento térmico. Los resultados validan que la configuración actual cumple satisfactoriamente con la banda de tolerancia legal del ±8% y los límites de higiene de combustión.</span>
+          <strong class="font-bold font-sans not-italic">Resumen –</strong> <span id="ieeeAbstract">Este documento presenta el análisis técnico y la evaluación de conformidad del sistema de combustión según la norma NTC 2832-1 y NTC 2832-2.</span>
         </p>
       </div>
-
-      <!-- CUERPO PRINCIPAL EN 2 COLUMNAS ESTILO IEEE (Adapta 1 Columna en móvil, 2 en Impresión y Desktop) -->
       <div class="sm:ieee-columns space-y-4 sm:space-y-0">
-        
-        <!-- I. INTRODUCCIÓN -->
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">I. INTRODUCCIÓN</h2>
-          <p>
-            El presente informe documenta la evaluación técnica realizada sobre un quemador atmosférico de premezcla parcial para gasodomésticos (cocinas, cubiertas y hornos). El objetivo principal es diagnosticar el comportamiento térmico y de emisiones ante variaciones de presión de suministro y diámetro del inyector, verificando el cumplimiento de la norma NTC 2832-1.
-          </p>
+          <p>El presente informe documenta la evaluación técnica realizada sobre un quemador atmosférico de premezcla parcial para gasodomésticos.</p>
         </section>
-
-        <!-- II. METODOLOGÍA -->
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">II. METODOLOGÍA Y MODELADO FÍSICO</h2>
-          <p id="ieeeMethodologyText">
-            El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:
-          </p>
-          <div class="my-2 p-2 bg-zinc-950 print:bg-slate-100 text-center font-mono text-[9px] sm:text-[10px] rounded overflow-x-auto">
-            Q* = A · Cd · √(2p / (ρ_aire · d)) · (T*/T) · (Patm + p / P*)
-          </div>
-          <p>
-            La estabilidad de la llama se evalúa comparando la velocidad de salida en los puertos contra la velocidad de deflagración laminar del combustible.
-          </p>
+          <p id="ieeeMethodologyText">El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio.</p>
         </section>
-
-        <!-- III. RESULTADOS -->
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">III. RESULTADOS Y CUMPLIMIENTO NORMATIVO</h2>
-          <p id="ieeeResultsText">
-            En la Tabla 1 se exponen los parámetros medidos y calculados durante la evaluación del sistema de combustión a condiciones nominales de ensayo.
-          </p>
-          
-          <!-- TABLA ESTILO IEEE -->
           <div class="my-3 overflow-x-auto">
-            <div class="text-[10px] font-sans font-bold text-center mb-1">Tabla 1. Evaluación de parámetros normativos NTC 2832-1.</div>
             <table class="w-full text-[10px] font-sans border-t-2 border-b-2 border-zinc-500 print:border-black border-collapse min-w-[260px]">
               <thead>
                 <tr class="border-b border-zinc-500 print:border-black">
@@ -899,30 +809,18 @@
               </tbody>
             </table>
           </div>
-          <p id="ieeeClosedBurnerNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1">
-            Nota: el coeficiente de arrastre (Kc) empleado para la arquitectura cerrada es un valor teórico inicial, pendiente de calibración con datos experimentales de banco de pruebas.
-          </p>
+          <p id="ieeeClosedBurnerNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1"></p>
           <p id="ieeePowerCorrectionNote" class="hidden text-[10px] italic text-zinc-500 print:text-slate-600 mt-1"></p>
         </section>
-
-        <!-- IV. DISCUSIÓN -->
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">IV. DISCUSIÓN DE RESULTADOS</h2>
-          <p id="ieeeDiscussion">
-            La potencia térmica calculada presenta una desviación acorde a la especificación nominal. El exceso de aire primario garantiza una combustión limpia eliminando el riesgo de puntas amarillas y depósitos de hollín.
-          </p>
+          <p id="ieeeDiscussion">La potencia térmica calculada presenta una desviación acorde a la especificación nominal.</p>
         </section>
-
-        <!-- V. CONCLUSIONES -->
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">V. CONCLUSIONES Y DICTAMEN</h2>
-          <p id="ieeeConclusion">
-            El producto evaluado cumple satisfactoriamente con los requisitos de aptitud funcional, higiene de combustión y eficiencia energética exigidos por la norma NTC 2832-1. Se autoriza su conformidad técnica para emisión de placa de características.
-          </p>
+          <p id="ieeeConclusion">El producto evaluado cumple satisfactoriamente con los requisitos NTC 2832-1.</p>
         </section>
-
       </div>
-
     </div>
   </div>
 
@@ -936,18 +834,7 @@
 
     let powerChart = null;
     let ovenChart = null;
-    // Factor de corrección de sitio: escala la potencia predicha para acercarla
-    // a la medida en ensayo real. Se calibra en la pestaña Metrología a partir
-    // de pares (potencia predicha, potencia real medida) y se aplica solo a la
-    // potencia mostrada -- no toca lambda, CO ni estabilidad de llama, que ya
-    // se calibran por separado (Kc, Cd, etc.).
     let powerCorrectionFactor = 1.0;
-    // Coeficientes del modelo de eficiencia (base, pendiente por distancia al
-    // recipiente, pendiente por exceso de aire primario). Son heurísticos por
-    // diseño -- la NTC 2832-2 define un ensayo calorimétrico real (agua +
-    // recipiente), no una fórmula derivada de estos parámetros. Estos
-    // coeficientes se recalibran por regresión contra ensayos reales cargados
-    // desde un JSON externo (solo lectura, ver runEfficiencyCalibration()).
     let effBase = 58.5;
     let effSlopeHPot = 0.15;
     let effSlopeLambda = 5.0;
@@ -995,24 +882,20 @@
       });
     }
 
-    // ==========================================================
-    // MODELO DE ARRASTRE: ARQUITECTURA ABIERTA vs CERRADA
-    // ==========================================================
-    // Abierto: venturi + tubo mezclador largo, con arrastre por
-    // momentum tipo jet-pump y pérdida de carga por fricción a lo
-    // largo del tubo (Darcy-Weisbach simplificado).
-    // Cerrado: inyector integrado en el difusor, sin tramo de
-    // mezcla previo -> sin pérdida de fricción de tubo, pero con
-    // coeficiente de arrastre propio (Kc) que debe calibrarse con
-    // datos experimentales específicos de esa geometría.
+    function densityCorrectionFactor(pAtm, p) {
+      const pa = (isFinite(pAtm) && pAtm >= 300 && pAtm <= 1100) ? pAtm : 1013.25;
+      const ps = isFinite(p) ? p : 0;
+      const P_REF = 1013.25;
+      return Math.sqrt((pa + ps) / P_REF);
+    }
+
     function frictionFactor(lTubeMm, dThroatMm) {
-      const fD = 0.03; // factor de fricción de Darcy típico para tubo liso, ajustable
+      const fD = 0.03;
       const LD = Math.max(lTubeMm, 0) / Math.max(dThroatMm, 0.1);
       return 1.0 / Math.sqrt(1.0 + fD * LD);
     }
 
     function computeEntrainment(burnerType, gas, dInj, dThroat, lTube, kc) {
-      // rMass: relación másica aire/gas arrastrado; rVol: relación volumétrica
       let rMass;
       if (burnerType === 'cerrado') {
         rMass = kc * Math.sqrt(1.0 / gas.dr) * (dThroat / dInj);
@@ -1032,17 +915,6 @@
       const type = getBurnerType();
       document.getElementById('fieldLTube').classList.toggle('hidden', type !== 'abierto');
       document.getElementById('fieldKc').classList.toggle('hidden', type !== 'cerrado');
-
-      const labelThroat = document.getElementById('labelThroat');
-      const descThroat = document.getElementById('descThroat');
-      if (type === 'cerrado') {
-        labelThroat.innerText = "Diámetro Efectivo de la Cámara de Mezcla del Difusor";
-        descThroat.innerText = "Diámetro característico de la cámara de mezcla integrada en el difusor respecto al inyector: sigue gobernando el arrastre de aire (mismo rol que un venturi), pero aquí no hay un tubo venturi independiente.";
-      } else {
-        labelThroat.innerText = "Diámetro de la Garganta del Venturi";
-        descThroat.innerText = "Diámetro de la garganta del venturi respecto al inyector: gobierna cuánto aire se induce por efecto jet-pump antes del tubo mezclador.";
-      }
-
       runSimulation();
     }
 
@@ -1070,10 +942,9 @@
       document.getElementById('valHPot').innerText = hPot.toFixed(1) + " mm";
 
       const gas = GASES[gasKey];
-      const pressRatio = (pAtm + pSup) / 1013.25;
       const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
-      const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
-      const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
+      const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr)) * densityCorrectionFactor(pAtm, pSup);
+      const qStdM3H = areaInj * cd * vIdealStd * 3600.0;
       const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
       const { rVol } = computeEntrainment(burnerType, gas, dInj, dThroat, lTube, kc);
@@ -1082,8 +953,6 @@
 
       let hFactor = hPot < 18.0 ? Math.exp((18.0 - hPot) / 3.0) : 1.0;
       let lambdaPen = lambdaPrim >= 0.55 ? 1.0 : Math.pow(0.55 / Math.max(lambdaPrim, 0.1), 2.2);
-      // Penalización adicional de mezcla pobre para cerrados: menor tiempo/tramo de
-      // homogeneización antes del puerto puede favorecer heterogeneidad local de CO.
       const mixPenalty = burnerType === 'cerrado' ? 1.15 : 1.0;
       const coPpm = 180.0 * lambdaPen * hFactor * mixPenalty;
       const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
@@ -1175,10 +1044,9 @@
       const lower = [];
 
       pressures.forEach(p => {
-        const pressRatio = (pAtm + p) / 1013.25;
         const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
-        const vIdealStd = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr));
-        const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
+        const vIdealStd = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr)) * densityCorrectionFactor(pAtm, p);
+        const qStdM3H = areaInj * cd * vIdealStd * 3600.0;
         const pKw = qStdM3H * gas.pcs * powerCorrectionFactor;
         powers.push(pKw.toFixed(2));
         upper.push((pDecl * 1.08).toFixed(2));
@@ -1223,16 +1091,17 @@
       let optInj = minInj;
       let optPres = minPres;
       let optPower = 0;
+      const injStep = (steps > 1) ? ((maxInj - minInj) / (steps - 1)) : 0;
+      const presStep = (steps > 1) ? ((maxPres - minPres) / (steps - 1)) : 0;
 
       for (let i = 0; i < steps; i++) {
-        const dInj = minInj + (i * ((maxInj - minInj) / (steps - 1)));
+        const dInj = minInj + (i * injStep);
         for (let j = 0; j < steps; j++) {
-          const pSup = maxPres - (j * ((maxPres - minPres) / (steps - 1)));
+          const pSup = maxPres - (j * presStep);
 
-          const pressRatio = (pAtm + pSup) / 1013.25;
           const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
-          const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
-          const qStdM3H = areaInj * cd * vIdealStd * pressRatio * 3600.0;
+          const vIdealStd = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr)) * densityCorrectionFactor(pAtm, pSup);
+          const qStdM3H = areaInj * cd * vIdealStd * 3600.0;
           const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
           const { rVol } = computeEntrainment(burnerType, gas, dInj, dThroat, lTube, kc);
@@ -1274,8 +1143,10 @@
         }
       }
 
-      const optI = ((optInj - minInj) / (maxInj - minInj)) * steps;
-      const optJ = ((maxPres - optPres) / (maxPres - minPres)) * steps;
+      const injSpan = maxInj - minInj;
+      const presSpan = maxPres - minPres;
+      const optI = (Math.abs(injSpan) > 1e-9) ? ((optInj - minInj) / injSpan) * steps : 0;
+      const optJ = (Math.abs(presSpan) > 1e-9) ? ((maxPres - optPres) / presSpan) * steps : 0;
       const optX = optI * cellW;
       const optY = optJ * cellH;
 
@@ -1287,13 +1158,23 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      const greenPct = ((greenCount / 625) * 100.0).toFixed(1);
+      const greenPct = ((greenCount / (steps * steps)) * 100.0).toFixed(1);
+      const archLabel = burnerType === 'cerrado' ? 'Cerrado' : 'Abierto';
+
+      if (greenCount === 0) {
+        document.getElementById('doeOptInj').innerText = "—";
+        document.getElementById('doeOptPres').innerText = "—";
+        document.getElementById('doeOptPower').innerText = "—";
+        document.getElementById('doeOptMargin').innerText = "sin punto apto";
+        document.getElementById('doeRobustnessText').innerText = `Ningún punto de la ventana explorada cumple NTC 2832.`;
+        return;
+      }
+
       document.getElementById('doeOptInj').innerText = optInj.toFixed(2) + " mm";
       document.getElementById('doeOptPres').innerText = optPres.toFixed(1) + " mbar";
       document.getElementById('doeOptPower').innerText = optPower.toFixed(2) + " kW";
       document.getElementById('doeOptMargin').innerText = "±" + maxSafetyMargin.toFixed(1) + "% de margen";
-      const archLabel = burnerType === 'cerrado' ? 'Cerrado' : 'Abierto';
-      document.getElementById('doeRobustnessText').innerText = `El ${greenPct}% de la ventana de exploración está en Zona Verde Apta NTC 2832 (Arquitectura ${archLabel}). El punto blanco marca la combinación con mayor estabilidad y robustez.`;
+      document.getElementById('doeRobustnessText').innerText = `El ${greenPct}% de la ventana está en Zona Verde NTC 2832 (Arquitectura ${archLabel}).`;
     }
 
     function runWeaverAnalysis() {
@@ -1327,19 +1208,57 @@
 
     function runOvenSimulation() {
       const numPorts = parseInt(document.getElementById('ovenNumPorts').value);
+      const tubeLenMm = parseFloat(document.getElementById('ovenLen').value);
+      const tubeDMm = parseFloat(document.getElementById('ovenTubeD').value);
+      const portDMm = parseFloat(document.getElementById('ovenPortD').value);
+
+      const badge = document.getElementById('ovenUnifBadge');
+      if (!isFinite(numPorts) || numPorts < 2 || !isFinite(tubeLenMm) || tubeLenMm <= 0 ||
+          !isFinite(tubeDMm) || tubeDMm <= 0 || !isFinite(portDMm) || portDMm <= 0) {
+        badge.innerText = 'Datos incompletos';
+        badge.className = 'px-3 py-1 bg-zinc-800 text-zinc-500 font-bold text-xs rounded-full border border-zinc-700';
+        ovenChart.data.labels = [];
+        ovenChart.data.datasets[0].data = [];
+        ovenChart.update();
+        return;
+      }
+
+      const fD = 0.03;
+      const areaTube = (Math.PI / 4.0) * Math.pow(tubeDMm / 1000.0, 2);
+      const areaPortTotal = numPorts * (Math.PI / 4.0) * Math.pow(portDMm / 1000.0, 2);
+      const areaRatio = areaPortTotal / areaTube;
+      const lengthRatio = (tubeLenMm / 1000.0) / (tubeDMm / 1000.0);
+
       const labels = [];
       const speeds = [];
+      let pMin = Infinity, pMax = -Infinity;
 
       for (let p = 1; p <= numPorts; p++) {
+        const frac = p / numPorts;
+        const remainingFlow = 1.0 - (p - 1) / numPorts;
+        const dynamicRecovery = (1.0 - Math.pow(remainingFlow, 2)) / Math.max(areaRatio * areaRatio, 1e-6);
+        const frictionLoss = fD * lengthRatio * frac * Math.pow(remainingFlow, 2);
+        const pRel = Math.max(1.0 + 0.08 * dynamicRecovery - frictionLoss, 0.05);
+        const speed = 1.8 * Math.sqrt(pRel);
         labels.push(p);
-        const factor = 1.0 + (0.15 * Math.pow(p / numPorts, 1.8));
-        const speed = 1.8 * Math.sqrt(factor);
         speeds.push(speed.toFixed(2));
+        if (speed < pMin) pMin = speed;
+        if (speed > pMax) pMax = speed;
       }
 
       ovenChart.data.labels = labels;
       ovenChart.data.datasets[0].data = speeds;
       ovenChart.update();
+
+      const uniformity = pMax > 0 ? (pMin / pMax) * 100.0 : 0;
+      badge.innerText = 'Uniformidad: ' + uniformity.toFixed(1) + '%';
+      if (uniformity >= 90.0) {
+        badge.className = 'px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold text-xs rounded-full border border-emerald-500/30';
+      } else if (uniformity >= 80.0) {
+        badge.className = 'px-3 py-1 bg-amber-500/20 text-amber-400 font-bold text-xs rounded-full border border-amber-500/30';
+      } else {
+        badge.className = 'px-3 py-1 bg-rose-500/20 text-rose-400 font-bold text-xs rounded-full border border-rose-500/30';
+      }
     }
 
     function onAirModeChange() {
@@ -1351,48 +1270,77 @@
       runAirEquivalence();
     }
 
+    const PLATFORM_REF_TEMP_K = 288.15; // 15°C (288.15 K)
+
+    // Presets rápidos para el banco de pruebas de laboratorio
+    function setAirPreset(preset) {
+      if (preset === 'slph_49') {
+        document.getElementById('airP').value = 49.0;
+        document.getElementById('airRefTempC').value = 0.0;
+      } else if (preset === 'std_10') {
+        document.getElementById('airP').value = 10.0;
+        document.getElementById('airRefTempC').value = 15.0;
+      }
+      runAirEquivalence();
+    }
+
+    function setAirTemp(tempC) {
+      document.getElementById('airRefTempC').value = tempC;
+      runAirEquivalence();
+    }
+
+    // ==========================================================
+    // PESTAÑA "AIRE" (EQUIVALENCIA NEUMÁTICA COLD TEST) — REVISIÓN EXACTA
+    // ==========================================================
     function runAirEquivalence() {
-      const qAir = parseFloat(document.getElementById('airQ').value);
+      const qAirRaw = parseFloat(document.getElementById('airQ').value);
       const pAir = parseFloat(document.getElementById('airP').value);
       const pGas = parseFloat(document.getElementById('gasP').value);
       const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
       const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
       const gas = GASES[gasKey];
       const mode = document.getElementById('airCalcMode').value;
+      const altCorrected = document.getElementById('airAltCorrected').checked;
 
-      // Misma corrección de presión atmosférica (pressRatio) que usa
-      // runSimulation(), aplicada simétricamente al ensayo de aire y al de
-      // gas, para que ambas pestañas describan el mismo fenómeno físico de
-      // forma consistente en vez de con fórmulas desincronizadas.
-      const pressRatioGas = (pAtm + pGas) / 1013.25;
-      const pressRatioAir = (pAtm + pAir) / 1013.25;
-      const qGasEst = qAir * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (pressRatioGas / pressRatioAir);
+      // 1. Remapeo de temperatura del caudalímetro a 15 °C (288.15 K)
+      // Ejemplo: si el manual especifica SLph a 0 °C (273.15 K):
+      // tempRemapFactor = 288.15 / 273.15 = 1.05491
+      const refTempC = parseFloat(document.getElementById('airRefTempC').value);
+      const refTempK = 273.15 + (isFinite(refTempC) ? refTempC : 0.0);
+      const tempRemapFactor = PLATFORM_REF_TEMP_K / refTempK;
+      const qAir15 = qAirRaw * tempRemapFactor;
+
+      document.getElementById('airQ15').innerText = qAir15.toFixed(1) + " L/h";
+
+      // 2. Factores de densidad a condiciones de sitio (Patm, p) por Bernoulli
+      const airSideFactor = altCorrected ? 1.0 : densityCorrectionFactor(pAtm, pAir);
+      const gasSideFactor = densityCorrectionFactor(pAtm, pGas);
+
+      // 3. Caudal de aire a la presión nominal del producto montado (sin convertir a gas):
+      const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
+      document.getElementById('airQAirSistema').innerText = qAirSistemaEst.toFixed(1) + " L/h";
+
+      // 4. Ecuación Neumática Exacta de Conversión Aire -> Gas:
+      // Q_gas,std = Q_air15 * (1 / sqrt(dr)) * sqrt(pGas / pAir) * sqrt((Patm + pGas)/(Patm + pAir))
+      const qGasEst = qAir15 * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
 
       document.getElementById('airQGas').innerText = qGasEst.toFixed(1) + " L/h";
       document.getElementById('airPGas').innerText = pGasEst.toFixed(2) + " kW";
 
       if (mode === 'cd') {
-        // Cd = Q_medido / (A_inj · v_ideal · pressRatio) -- despeje directo de
-        // la misma ecuación de descarga (incluyendo la corrección atmosférica
-        // pressRatio, igual que en runSimulation()), con el diámetro real ya
-        // medido (galgas de pasador) en vez de asumir Cd = 0.90.
         const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
         const areaInjKnown = (Math.PI / 4.0) * Math.pow(dInjKnown / 1000.0, 2);
-        const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
-        const cdCalc = (qAir / 3600000.0) / (areaInjKnown * vIdealAir * pressRatioAir);
+        const vIdealAir = Math.sqrt((2.0 * pAir * 100.0) / 1.225) * airSideFactor;
+        const cdCalc = (qAir15 / 3600000.0) / (areaInjKnown * vIdealAir);
         document.getElementById('airCdResult').innerText = cdCalc.toFixed(3);
       } else {
-        const vIdealAir = Math.sqrt(2.0 * pAir * 100.0 / 1.225);
-        const dEff = Math.sqrt(((qAir / 3600000.0) / (0.90 * vIdealAir * pressRatioAir)) * 4.0 / Math.PI) * 1000.0;
+        const vIdealAir = Math.sqrt((2.0 * pAir * 100.0) / 1.225) * airSideFactor;
+        const dEff = Math.sqrt(((qAir15 / 3600000.0) / (0.90 * vIdealAir)) * 4.0 / Math.PI) * 1000.0;
         document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
       }
     }
 
-    // dInj y Cd provienen de la MISMA medición de caudal de aire, por lo que
-    // deben aplicarse siempre como par: si se actualiza solo uno de los dos
-    // en el Simulador, el resultado queda matemáticamente inconsistente
-    // (el área ya no coincide con el Cd calculado para esa área).
     function applyCalibratedCd() {
       const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
       const cdText = document.getElementById('airCdResult').innerText;
@@ -1412,7 +1360,16 @@
 
     function runMetrology() {
       const raw = document.getElementById('metData').value.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
-      if (raw.length < 2) return;
+
+      if (raw.length < 2) {
+        const msg = raw.length === 0 ? '— (sin datos válidos)' : '— (se requieren ≥2 lecturas)';
+        document.getElementById('metMean').innerText = msg;
+        document.getElementById('metCV').innerText = '—';
+        document.getElementById('metU').innerText = '—';
+        document.getElementById('metRecLabel').innerText = '—';
+        document.getElementById('metBand').innerText = '—';
+        return;
+      }
 
       const sum = raw.reduce((a, b) => a + b, 0);
       const mean = sum / raw.length;
@@ -1420,30 +1377,20 @@
       const std = Math.sqrt(variance);
       const cv = (std / mean) * 100.0;
       const u95 = 2.0 * (std / Math.sqrt(raw.length));
-      const recLabel = mean.toFixed(2);
+      const recLabel = parseFloat(mean.toFixed(2));
 
       document.getElementById('metMean').innerText = mean.toFixed(3) + " kW";
       document.getElementById('metCV').innerText = cv.toFixed(2) + " %";
       document.getElementById('metU').innerText = "± " + u95.toFixed(3) + " kW";
-      document.getElementById('metRecLabel').innerText = recLabel + " kW";
+      document.getElementById('metRecLabel').innerText = recLabel.toFixed(2) + " kW";
       document.getElementById('metBand').innerText = (recLabel * 0.92).toFixed(2) + " kW - " + (recLabel * 1.08).toFixed(2) + " kW";
     }
 
-    // ==========================================================
-    // CALIBRACIÓN DE Kc (QUEMADOR CERRADO) A PARTIR DE CO MEDIDO
-    // ==========================================================
-    // Invierte la relación CO <-> lambda_primario que ya usa runSimulation()
-    // (mismo hFactor por distancia y mismo mixPenalty=1.15 de arquitectura
-    // cerrada) para despejar el lambda real y, de ahí, el Kc geométrico.
-    // Válido únicamente si lambdaPen_medido < 1 (es decir, lambda < 0.55):
-    // por encima de ese umbral el modelo satura el CO y no permite
-    // distinguir un lambda único, así que ese punto se marca como no
-    // confiable en vez de forzar un resultado engañoso.
     function estimateKcFromCO(coPpm, gas, dInj, dThroat, hFactor) {
-      const mixPenalty = 1.15; // fijo, igual que en runSimulation() para arquitectura cerrada
+      const mixPenalty = 1.15;
       if (!isFinite(coPpm) || coPpm <= 0) return null;
       const lambdaPenMeasured = coPpm / (180.0 * hFactor * mixPenalty);
-      if (lambdaPenMeasured >= 1.0) {
+      if (lambdaPenMeasured <= 1.0 + 1e-9) {
         return { lambda: null, kc: null, saturated: true };
       }
       const lambda = 0.55 / Math.pow(lambdaPenMeasured, 1.0 / 2.2);
@@ -1531,14 +1478,6 @@
       runSimulation();
     }
 
-    // ==========================================================
-    // FACTOR DE CORRECCIÓN DE POTENCIA: PREDICHO (SIMULADOR) VS. REAL (ENSAYO)
-    // ==========================================================
-    // En vez de modelar cada efecto residual por separado (enfriamiento
-    // Joule-Thomson del gas real al expandirse, transferibilidad del Cd
-    // entre aire y gas, variación barométrica día a día), se calibra
-    // directamente la razón Real/Predicha con datos de ensayos de
-    // combustión reales -- el mismo principio que ya se usa para Kc.
     function runPowerCorrectionCalc() {
       const rows = [
         { predId: 'pcfPred1', realId: 'pcfReal1', label: 'Ensayo 1' },
@@ -1588,19 +1527,10 @@
       switchTab('sim');
     }
 
-    // ==========================================================
-    // MODELO DE EFICIENCIA: CALIBRACIÓN DE SOLO LECTURA DESDE GITHUB
-    // ==========================================================
-    // Esta plataforma NUNCA escribe datos de vuelta al repositorio ni ofrece
-    // un formulario para agregar ensayos -- solo lee un JSON externo
-    // (administrado manualmente por el responsable del laboratorio) y ajusta
-    // por regresión los 3 coeficientes del modelo heurístico de eficiencia.
     let effLoadedData = [];
     const EFF_URL_STORAGE_KEY = 'labCombustion_effJsonUrl';
     const EFF_DEFAULT_URL = 'https://raw.githubusercontent.com/judavp256/1-COMBUSTION/refs/heads/master/data/eficiencia.json';
 
-    // Resuelve un sistema lineal 3x3 (A·x = b) por eliminación gaussiana con
-    // pivoteo parcial. Se usa para las ecuaciones normales de la regresión.
     function solve3x3(A, b) {
       const M = [A[0].slice(), A[1].slice(), A[2].slice()];
       const v = b.slice();
@@ -1609,7 +1539,7 @@
         for (let r = col + 1; r < 3; r++) {
           if (Math.abs(M[r][col]) > Math.abs(M[pivotRow][col])) pivotRow = r;
         }
-        if (Math.abs(M[pivotRow][col]) < 1e-12) return null; // sistema singular
+        if (Math.abs(M[pivotRow][col]) < 1e-12) return null;
         if (pivotRow !== col) {
           [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
           [v[col], v[pivotRow]] = [v[pivotRow], v[col]];
@@ -1633,7 +1563,7 @@
         statusEl.className = 'text-[11px] text-amber-400';
         return;
       }
-      try { localStorage.setItem(EFF_URL_STORAGE_KEY, url); } catch (e) { /* almacenamiento no disponible, se ignora */ }
+      try { localStorage.setItem(EFF_URL_STORAGE_KEY, url); } catch (e) {}
 
       statusEl.innerText = 'Cargando...';
       statusEl.className = 'text-[11px] text-zinc-500';
@@ -1672,14 +1602,191 @@
       body.innerHTML = html;
     }
 
-    // Regresión lineal múltiple (mínimos cuadrados) para:
-    //   effPct = base - slopeHPot·max(0,hPot-20) - slopeLambda·max(0,λ-0.7)
-    // Reescrita como effPct = base + coefH·x1 + coefL·x2 (coefH = -slopeHPot,
-    // coefL = -slopeLambda) y resuelta vía ecuaciones normales (X^T X)β=X^T y.
     function runEfficiencyRegression() {
       const valid = effLoadedData.filter(r =>
         typeof r.hPot === 'number' && typeof r.lambda === 'number' && typeof r.eficienciaReal === 'number'
       );
 
       const applyBtn = document.getElementById('effApplyBtn');
-      const coefsEl = document.getElemen
+      const coefsEl = document.getElementById('effCoefsDisplay');
+      const r2El = document.getElementById('effR2Display');
+
+      if (valid.length < 3) {
+        coefsEl.innerText = effBase.toFixed(3) + ' / ' + effSlopeHPot.toFixed(3) + ' / ' + effSlopeLambda.toFixed(3) + ' (sin recalibrar, se necesitan ≥3 ensayos válidos)';
+        r2El.innerText = valid.length > 0 ? ('Solo ' + valid.length + ' ensayo(s) con hPot, λ y eficienciaReal numéricos -- faltan datos para calibrar.') : '';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.effBase;
+        return;
+      }
+
+      let Sxx1 = 0, Sxx2 = 0, Sx1x2 = 0, Sx1 = 0, Sx2 = 0, Sx1y = 0, Sx2y = 0, Sy = 0;
+      const n = valid.length;
+      valid.forEach(r => {
+        const x1 = Math.max(0, r.hPot - 20.0);
+        const x2 = Math.max(0, r.lambda - 0.7);
+        const y = r.eficienciaReal;
+        Sxx1 += x1 * x1; Sxx2 += x2 * x2; Sx1x2 += x1 * x2;
+        Sx1 += x1; Sx2 += x2; Sx1y += x1 * y; Sx2y += x2 * y; Sy += y;
+      });
+
+      const A = [
+        [n, Sx1, Sx2],
+        [Sx1, Sxx1, Sx1x2],
+        [Sx2, Sx1x2, Sxx2]
+      ];
+      const b = [Sy, Sx1y, Sx2y];
+      const sol = solve3x3(A, b);
+
+      if (!sol) {
+        coefsEl.innerText = 'No se pudo calibrar (datos insuficientemente variados, sistema singular).';
+        r2El.innerText = '';
+        applyBtn.disabled = true;
+        delete applyBtn.dataset.effBase;
+        return;
+      }
+
+      const [base, coefH, coefL] = sol;
+      const slopeH = -coefH;
+      const slopeL = -coefL;
+
+      const meanY = Sy / n;
+      let ssRes = 0, ssTot = 0;
+      valid.forEach(r => {
+        const x1 = Math.max(0, r.hPot - 20.0);
+        const x2 = Math.max(0, r.lambda - 0.7);
+        const pred = base + coefH * x1 + coefL * x2;
+        ssRes += Math.pow(r.eficienciaReal - pred, 2);
+        ssTot += Math.pow(r.eficienciaReal - meanY, 2);
+      });
+      const r2 = ssTot > 0 ? (1 - ssRes / ssTot) : null;
+
+      coefsEl.innerText = base.toFixed(3) + ' / ' + slopeH.toFixed(3) + ' / ' + slopeL.toFixed(3) + ' (calculado con n=' + n + ')';
+      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'correlación por regresión contra ensayos cargados.';
+      applyBtn.disabled = false;
+      applyBtn.dataset.effBase = base.toFixed(4);
+      applyBtn.dataset.effSlopeH = slopeH.toFixed(4);
+      applyBtn.dataset.effSlopeL = slopeL.toFixed(4);
+      applyBtn.dataset.effN = String(n);
+    }
+
+    function applyEfficiencyCalibration() {
+      const btn = document.getElementById('effApplyBtn');
+      if (!btn.dataset.effBase) return;
+      effBase = parseFloat(btn.dataset.effBase);
+      effSlopeHPot = parseFloat(btn.dataset.effSlopeH);
+      effSlopeLambda = parseFloat(btn.dataset.effSlopeL);
+      effCalibCount = parseInt(btn.dataset.effN, 10);
+      updateEffCalibStatus();
+      runSimulation();
+      switchTab('sim');
+    }
+
+    function updateEffCalibStatus() {
+      const el = document.getElementById('effCalibStatus');
+      if (!el) return;
+      if (effCalibCount > 0) {
+        el.innerText = 'Calibrado con ' + effCalibCount + ' ensayo(s) real(es)';
+        el.className = 'text-[10px] text-violet-400';
+      } else {
+        el.innerText = 'Sin calibrar — usando valores por defecto';
+        el.className = 'text-[10px] text-zinc-500';
+      }
+    }
+
+    function generateIEEEReport() {
+      const burnerType = getBurnerType();
+      const pNom = document.getElementById('resPower').innerText;
+      const coVal = document.getElementById('resCO').innerText;
+      const effVal = document.getElementById('resEff').innerText;
+      const flameVal = document.getElementById('flameStatusBadge').innerText;
+
+      const archLabel = burnerType === 'cerrado'
+        ? 'Cerrado (inyector integrado en difusor, línea hermética)'
+        : 'Abierto (venturi con tubo mezclador y arrastre de aire)';
+      document.getElementById('repBurnerType').innerText = archLabel;
+      document.getElementById('repPower').innerText = pNom;
+      document.getElementById('repCO').innerText = coVal;
+      document.getElementById('repEff').innerText = effEffVal = effVal;
+      document.getElementById('repFlame').innerText = flameVal;
+
+      const methodologyBase = "El modelo computacional integra la ecuación de inyección de Bernoulli corregida por densidad relativa y presión atmosférica del sitio. El caudal volumétrico estándar equivalente descargado por el orificio se expresa mediante:";
+      document.getElementById('ieeeMethodologyText').innerText = burnerType === 'cerrado'
+        ? methodologyBase + " (Arquitectura cerrada: arrastre modelado mediante coeficiente Kc específico de geometría, sin tramo de mezcla previo al difusor)."
+        : methodologyBase + " (Arquitectura abierta: el arrastre incluye la pérdida de carga por fricción en el tubo mezclador según su longitud)."
+
+      document.getElementById('ieeeClosedBurnerNote').classList.toggle('hidden', burnerType !== 'cerrado');
+
+      const pcfNote = document.getElementById('ieeePowerCorrectionNote');
+      const pcfActive = Math.abs(powerCorrectionFactor - 1.0) > 0.001;
+      pcfNote.classList.toggle('hidden', !pcfActive);
+      if (pcfActive) {
+        pcfNote.innerText = "Nota: la potencia reportada incluye un factor de corrección de sitio de " + powerCorrectionFactor.toFixed(3) + ", calibrado a partir de ensayos reales de combustión.";
+      }
+
+      document.getElementById('ieeeReportModal').classList.remove('hidden');
+    }
+
+    function closeIEEEReport() {
+      document.getElementById('ieeeReportModal').classList.add('hidden');
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabSim').classList.add('hidden');
+      document.getElementById('tabDoe').classList.add('hidden');
+      document.getElementById('tabWeaver').classList.add('hidden');
+      document.getElementById('tabOven').classList.add('hidden');
+      document.getElementById('tabAir').classList.add('hidden');
+      document.getElementById('tabMet').classList.add('hidden');
+
+      const inactive = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition-all";
+      const active = "shrink-0 px-1 py-2 text-xs font-semibold font-mono tracking-wide text-cyan-400 border-b-2 border-cyan-400 transition-all";
+
+      document.getElementById('btnTabSim').className = inactive;
+      document.getElementById('btnTabDoe').className = inactive;
+      document.getElementById('btnTabWeaver').className = inactive;
+      document.getElementById('btnTabOven').className = inactive;
+      document.getElementById('btnTabAir').className = inactive;
+      document.getElementById('btnTabMet').className = inactive;
+
+      if (tab === 'sim') {
+        document.getElementById('tabSim').classList.remove('hidden');
+        document.getElementById('btnTabSim').className = active;
+      } else if (tab === 'doe') {
+        document.getElementById('tabDoe').classList.remove('hidden');
+        document.getElementById('btnTabDoe').className = active;
+        runDoESweep();
+      } else if (tab === 'weaver') {
+        document.getElementById('tabWeaver').classList.remove('hidden');
+        document.getElementById('btnTabWeaver').className = active;
+        runWeaverAnalysis();
+      } else if (tab === 'oven') {
+        document.getElementById('tabOven').classList.remove('hidden');
+        document.getElementById('btnTabOven').className = active;
+        runOvenSimulation();
+      } else if (tab === 'air') {
+        document.getElementById('tabAir').classList.remove('hidden');
+        document.getElementById('btnTabAir').className = active;
+        runAirEquivalence();
+      } else if (tab === 'met') {
+        document.getElementById('tabMet').classList.remove('hidden');
+        document.getElementById('btnTabMet').className = active;
+        runMetrology();
+        runKcCalibration();
+        runPowerCorrectionCalc();
+      }
+    }
+
+    window.onload = function() {
+      initChart();
+      updatePcfDisplay();
+      updateEffCalibStatus();
+      onBurnerTypeChange();
+
+      let savedUrl = null;
+      try { savedUrl = localStorage.getItem(EFF_URL_STORAGE_KEY); } catch (e) {}
+      document.getElementById('effJsonUrl').value = savedUrl || EFF_DEFAULT_URL;
+      loadEfficiencyData();
+    };
+  </script>
+</body>
+</html>
