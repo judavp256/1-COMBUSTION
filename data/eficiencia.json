@@ -1,7 +1,49 @@
 {
   "ensayosEficiencia": [
-    { "producto": "Estufa 4P - Quemador 1", "hPot": 22.0, "lambda": 0.68, "eficienciaReal": 57.17 },
-    { "producto": "Estufa 4P - Quemador 2", "hPot": 22.0, "lambda": 0.70, "eficienciaReal": 57.03 },
-    { "producto": "Estufa 4P - Quemador 4", "hPot": 22.0, "lambda": 0.65, "eficienciaReal": 56.41 }
+    {
+      "producto": "Estufa 4P - Quemador Auxiliar (1.0 kW)",
+      "potenciaKw": 1.05,
+      "hPot": 22.0,
+      "dOlla": 140,
+      "dCorona": 55,
+      "lambda": 0.65,
+      "eficienciaReal": 55.40
+    },
+    {
+      "producto": "Estufa 4P - Quemador Semirrápido (1.7 kW) - Ref",
+      "potenciaKw": 1.72,
+      "hPot": 22.0,
+      "dOlla": 200,
+      "dCorona": 75,
+      "lambda": 0.68,
+      "eficienciaReal": 57.20
+    },
+    {
+      "producto": "Estufa 4P - Quemador Semirrápido (1.7 kW) - Parrilla Alta",
+      "potenciaKw": 1.72,
+      "hPot": 25.0,
+      "dOlla": 200,
+      "dCorona": 75,
+      "lambda": 0.68,
+      "eficienciaReal": 56.50
+    },
+    {
+      "producto": "Estufa 4P - Quemador Rápido (2.8 kW) - Ref",
+      "potenciaKw": 2.78,
+      "hPot": 22.0,
+      "dOlla": 240,
+      "dCorona": 95,
+      "lambda": 0.70,
+      "eficienciaReal": 58.10
+    },
+    {
+      "producto": "Estufa 4P - Quemador Rápido (2.8 kW) - Parrilla Alta",
+      "potenciaKw": 2.80,
+      "hPot": 26.0,
+      "dOlla": 240,
+      "dCorona": 95,
+      "lambda": 0.70,
+      "eficienciaReal": 57.30
+    }
   ]
 }

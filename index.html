@@ -709,14 +709,15 @@
           <table class="w-full text-[11px] border-collapse">
             <thead>
               <tr class="text-zinc-500 border-b border-zinc-800">
-                <th class="text-left py-1.5 font-sans font-semibold">Producto</th>
+                <th class="text-left py-1.5 font-sans font-semibold">Producto / Quemador</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Potencia (kW)</th>
                 <th class="text-right py-1.5 font-sans font-semibold">hPot (mm)</th>
-                <th class="text-right py-1.5 font-sans font-semibold">λ</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Olla / Corona (mm)</th>
                 <th class="text-right py-1.5 font-sans font-semibold">Eficiencia Real</th>
               </tr>
             </thead>
             <tbody id="effDataBody" class="font-mono">
-              <tr><td colspan="4" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>
+              <tr><td colspan="5" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>
             </tbody>
           </table>
         </div>
@@ -850,6 +851,7 @@
     let powerCorrectionFactor = 1.0;
     let effBase = 58.5;
     let effSlopeHPot = 0.15;
+    let effSlopePower = 0.80;
     let effSlopeLambda = 5.0;
     let effCalibCount = 0;
 
@@ -1018,7 +1020,7 @@
       let lambdaPen = lambdaPrim >= 0.55 ? 1.0 : Math.pow(0.55 / Math.max(lambdaPrim, 0.1), 2.2);
       const mixPenalty = burnerType === 'cerrado' ? 1.15 : 1.0;
       const coPpm = 180.0 * lambdaPen * hFactor * mixPenalty;
-      const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
+      const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) + (effSlopePower * (powerKw - 2.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
 
       const tol = getNtcPowerTolerance(pDecl, dInj);
       const diffKw = powerKw - pDecl;
@@ -1191,7 +1193,7 @@
           let lambdaPen = lambdaPrim >= 0.55 ? 1.0 : Math.pow(0.55 / Math.max(lambdaPrim, 0.1), 2.2);
           const mixPenalty = burnerType === 'cerrado' ? 1.15 : 1.0;
           const coPpm = 180.0 * lambdaPen * hFactor * mixPenalty;
-          const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
+          const effPct = effBase - (effSlopeHPot * Math.max(0, hPot - 20.0)) + (effSlopePower * (powerKw - 2.0)) - (effSlopeLambda * Math.max(0, lambdaPrim - 0.7));
 
           const pDiff = isFinite(pDecl) && pDecl > 0 ? ((powerKw - pDecl) / pDecl) * 100.0 : 0.0;
           const doeTol = getNtcPowerTolerance(pDecl, dInj);
@@ -1613,12 +1615,13 @@
     const EFF_URL_STORAGE_KEY = 'labCombustion_effJsonUrl';
     const EFF_DEFAULT_URL = 'https://raw.githubusercontent.com/judavp256/1-COMBUSTION/refs/heads/master/data/eficiencia.json';
 
-    function solve3x3(A, b) {
-      const M = [A[0].slice(), A[1].slice(), A[2].slice()];
+    function solveNxN(A, b) {
+      const n = b.length;
+      const M = A.map(row => row.slice());
       const v = b.slice();
-      for (let col = 0; col < 3; col++) {
+      for (let col = 0; col < n; col++) {
         let pivotRow = col;
-        for (let r = col + 1; r < 3; r++) {
+        for (let r = col + 1; r < n; r++) {
           if (Math.abs(M[r][col]) > Math.abs(M[pivotRow][col])) pivotRow = r;
         }
         if (Math.abs(M[pivotRow][col]) < 1e-12) return null;
@@ -1626,14 +1629,30 @@
           [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
           [v[col], v[pivotRow]] = [v[pivotRow], v[col]];
         }
-        for (let r = 0; r < 3; r++) {
+        for (let r = 0; r < n; r++) {
           if (r === col) continue;
           const factor = M[r][col] / M[col][col];
-          for (let c = col; c < 3; c++) M[r][c] -= factor * M[col][c];
+          for (let c = col; c < n; c++) M[r][c] -= factor * M[col][c];
           v[r] -= factor * v[col];
         }
       }
-      return [v[0] / M[0][0], v[1] / M[1][1], v[2] / M[2][2]];
+      return v.map((val, i) => val / M[i][i]);
+    }
+
+    function fitLinearRegression(X, y) {
+      const n = X.length;
+      const p = X[0].length;
+      const XtX = Array.from({ length: p }, () => Array(p).fill(0));
+      const Xty = Array(p).fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < p; j++) {
+          for (let k = 0; k < p; k++) {
+            XtX[j][k] += X[i][j] * X[i][k];
+          }
+          Xty[j] += X[i][j] * y[i];
+        }
+      }
+      return solveNxN(XtX, Xty);
     }
 
     async function loadEfficiencyData() {
@@ -1652,7 +1671,9 @@
       try {
         const resp = await fetch(url, { cache: 'no-store' });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
+        let text = await resp.text();
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const data = JSON.parse(text);
         if (!data || !Array.isArray(data.ensayosEficiencia)) {
           throw new Error('El JSON no tiene el formato esperado ({ "ensayosEficiencia": [...] })');
         }
@@ -1670,23 +1691,26 @@
     function renderEfficiencyTable() {
       const body = document.getElementById('effDataBody');
       if (effLoadedData.length === 0) {
-        body.innerHTML = '<tr><td colspan="4" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>';
+        body.innerHTML = '<tr><td colspan="5" class="py-2 text-center text-zinc-600 font-sans">Sin datos cargados todavía</td></tr>';
         return;
       }
       let html = '';
       effLoadedData.forEach(row => {
         const nombre = (row.producto !== undefined && row.producto !== null) ? String(row.producto) : '—';
+        const pKw = (typeof row.potenciaKw === 'number') ? row.potenciaKw.toFixed(2) + ' kW' : '—';
         const hp = (typeof row.hPot === 'number') ? row.hPot.toFixed(1) : '—';
-        const lam = (typeof row.lambda === 'number') ? row.lambda.toFixed(3) : '—';
+        const dO = (typeof row.dOlla === 'number') ? 'Ø' + row.dOlla : '—';
+        const dC = (typeof row.dCorona === 'number') ? ' / Ø' + row.dCorona : '';
+        const geom = (dO !== '—' || dC !== '') ? (dO + dC) : '—';
         const eff = (typeof row.eficienciaReal === 'number') ? row.eficienciaReal.toFixed(2) + ' %' : '—';
-        html += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + nombre + '</td><td class="text-right text-cyan-400">' + hp + '</td><td class="text-right text-cyan-400">' + lam + '</td><td class="text-right text-emerald-400">' + eff + '</td></tr>';
+        html += '<tr class="border-b border-zinc-800/60"><td class="py-1.5 font-sans text-zinc-300">' + nombre + '</td><td class="text-right text-cyan-400">' + pKw + '</td><td class="text-right text-zinc-300">' + hp + '</td><td class="text-right text-zinc-400">' + geom + '</td><td class="text-right text-emerald-400 font-bold">' + eff + '</td></tr>';
       });
       body.innerHTML = html;
     }
 
     function runEfficiencyRegression() {
       const valid = effLoadedData.filter(r =>
-        typeof r.hPot === 'number' && typeof r.lambda === 'number' && typeof r.eficienciaReal === 'number'
+        typeof r.hPot === 'number' && typeof r.eficienciaReal === 'number'
       );
 
       const applyBtn = document.getElementById('effApplyBtn');
@@ -1694,59 +1718,92 @@
       const r2El = document.getElementById('effR2Display');
 
       if (valid.length < 3) {
-        coefsEl.innerText = effBase.toFixed(3) + ' / ' + effSlopeHPot.toFixed(3) + ' / ' + effSlopeLambda.toFixed(3) + ' (sin recalibrar, se necesitan ≥3 ensayos válidos)';
-        r2El.innerText = valid.length > 0 ? ('Solo ' + valid.length + ' ensayo(s) con hPot, λ y eficienciaReal numéricos -- faltan datos para calibrar.') : '';
+        coefsEl.innerText = effBase.toFixed(3) + ' / ' + effSlopeHPot.toFixed(3) + ' / ' + effSlopePower.toFixed(3) + ' / ' + effSlopeLambda.toFixed(3) + ' (valores por defecto, se necesitan ≥3 ensayos)';
+        r2El.innerText = valid.length > 0 ? ('Solo ' + valid.length + ' ensayo(s) con hPot y eficienciaReal numéricos -- faltan datos para calibrar.') : '';
         applyBtn.disabled = true;
         delete applyBtn.dataset.effBase;
         return;
       }
 
-      let Sxx1 = 0, Sxx2 = 0, Sx1x2 = 0, Sx1 = 0, Sx2 = 0, Sx1y = 0, Sx2y = 0, Sy = 0;
-      const n = valid.length;
-      valid.forEach(r => {
-        const x1 = Math.max(0, r.hPot - 20.0);
-        const x2 = Math.max(0, r.lambda - 0.7);
-        const y = r.eficienciaReal;
-        Sxx1 += x1 * x1; Sxx2 += x2 * x2; Sx1x2 += x1 * x2;
-        Sx1 += x1; Sx2 += x2; Sx1y += x1 * y; Sx2y += x2 * y; Sy += y;
-      });
+      // Evaluar si los datos incluyen variación de potencia y/o lambda
+      const hasPower = valid.some(r => typeof r.potenciaKw === 'number' && Math.abs(r.potenciaKw - valid[0].potenciaKw) > 0.05);
+      const hasLambda = valid.some(r => typeof r.lambda === 'number' && Math.abs(r.lambda - (valid[0].lambda || 0.68)) > 0.02);
 
-      const A = [
-        [n, Sx1, Sx2],
-        [Sx1, Sxx1, Sx1x2],
-        [Sx2, Sx1x2, Sxx2]
-      ];
-      const b = [Sy, Sx1y, Sx2y];
-      const sol = solve3x3(A, b);
+      let X = [];
+      let modelType = 'full';
+      if (hasPower && hasLambda && valid.length >= 4) {
+        // Modelo Completo: [1, x_hPot, x_Power, x_Lambda]
+        modelType = 'hPot_power_lambda';
+        X = valid.map(r => [
+          1,
+          Math.max(0, r.hPot - 20.0),
+          ((r.potenciaKw !== undefined ? r.potenciaKw : 2.0) - 2.0),
+          Math.max(0, (r.lambda !== undefined ? r.lambda : 0.68) - 0.7)
+        ]);
+      } else if (hasPower) {
+        // Modelo Altura + Potencia: [1, x_hPot, x_Power]
+        modelType = 'hPot_power';
+        X = valid.map(r => [
+          1,
+          Math.max(0, r.hPot - 20.0),
+          ((r.potenciaKw !== undefined ? r.potenciaKw : 2.0) - 2.0)
+        ]);
+      } else {
+        // Modelo Altura + Lambda Clásico: [1, x_hPot, x_Lambda]
+        modelType = 'hPot_lambda';
+        X = valid.map(r => [
+          1,
+          Math.max(0, r.hPot - 20.0),
+          Math.max(0, (r.lambda !== undefined ? r.lambda : 0.68) - 0.7)
+        ]);
+      }
+
+      const y = valid.map(r => r.eficienciaReal);
+      const sol = fitLinearRegression(X, y);
 
       if (!sol) {
-        coefsEl.innerText = 'No se pudo calibrar (datos insuficientemente variados, sistema singular).';
+        coefsEl.innerText = 'No se pudo calibrar (matriz singular, ensayos con valores colineales).';
         r2El.innerText = '';
         applyBtn.disabled = true;
         delete applyBtn.dataset.effBase;
         return;
       }
 
-      const [base, coefH, coefL] = sol;
-      const slopeH = -coefH;
-      const slopeL = -coefL;
+      let base = 58.5, slopeH = 0.15, slopeP = 0.80, slopeL = 5.0;
 
-      const meanY = Sy / n;
+      if (modelType === 'hPot_power_lambda') {
+        base = sol[0];
+        slopeH = -sol[1];
+        slopeP = sol[2];
+        slopeL = -sol[3];
+      } else if (modelType === 'hPot_power') {
+        base = sol[0];
+        slopeH = -sol[1];
+        slopeP = sol[2];
+        slopeL = effSlopeLambda; // Conserva valor previo de lambda
+      } else {
+        base = sol[0];
+        slopeH = -sol[1];
+        slopeP = effSlopePower; // Conserva valor previo de potencia
+        slopeL = -sol[2];
+      }
+
+      const n = valid.length;
+      const meanY = y.reduce((a, b) => a + b, 0) / n;
       let ssRes = 0, ssTot = 0;
-      valid.forEach(r => {
-        const x1 = Math.max(0, r.hPot - 20.0);
-        const x2 = Math.max(0, r.lambda - 0.7);
-        const pred = base + coefH * x1 + coefL * x2;
+      valid.forEach((r, idx) => {
+        let pred = base - slopeH * Math.max(0, r.hPot - 20.0) + slopeP * ((r.potenciaKw || 2.0) - 2.0) - slopeL * Math.max(0, (r.lambda || 0.68) - 0.7);
         ssRes += Math.pow(r.eficienciaReal - pred, 2);
         ssTot += Math.pow(r.eficienciaReal - meanY, 2);
       });
       const r2 = ssTot > 0 ? (1 - ssRes / ssTot) : null;
 
-      coefsEl.innerText = base.toFixed(3) + ' / ' + slopeH.toFixed(3) + ' / ' + slopeL.toFixed(3) + ' (calculado con n=' + n + ')';
-      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'correlación por regresión contra ensayos cargados.';
+      coefsEl.innerText = 'η_base=' + base.toFixed(2) + '% | s_h=' + slopeH.toFixed(3) + ' | s_P=' + slopeP.toFixed(3) + ' | s_λ=' + slopeL.toFixed(3) + ' (n=' + n + ')';
+      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'Regresión multivariable (hParrilla + Potencia + λ).';
       applyBtn.disabled = false;
       applyBtn.dataset.effBase = base.toFixed(4);
       applyBtn.dataset.effSlopeH = slopeH.toFixed(4);
+      applyBtn.dataset.effSlopeP = slopeP.toFixed(4);
       applyBtn.dataset.effSlopeL = slopeL.toFixed(4);
       applyBtn.dataset.effN = String(n);
     }
@@ -1756,6 +1813,7 @@
       if (!btn.dataset.effBase) return;
       effBase = parseFloat(btn.dataset.effBase);
       effSlopeHPot = parseFloat(btn.dataset.effSlopeH);
+      effSlopePower = parseFloat(btn.dataset.effSlopeP);
       effSlopeLambda = parseFloat(btn.dataset.effSlopeL);
       effCalibCount = parseInt(btn.dataset.effN, 10);
       updateEffCalibStatus();
