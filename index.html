@@ -233,7 +233,7 @@
 
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
           <div>
-            <span class="text-xs font-semibold text-zinc-300 block">Modelo de Eficiencia (η)</span>
+            <span class="text-xs font-semibold text-zinc-300 block">Modelo de Rendimiento EE (NTC 2832-2)</span>
             <span id="effCalibStatus" class="text-[10px] text-zinc-500">Sin calibrar — usando valores por defecto</span>
           </div>
           <div class="text-right shrink-0">
@@ -272,9 +272,9 @@
           </div>
 
           <div class="bg-zinc-900 border-l-2 border-emerald-500 rounded-sm p-3.5 sm:p-4">
-            <span class="text-[11px] text-zinc-500 block font-medium">Aire Primario</span>
+            <span class="text-[11px] text-zinc-500 block font-medium">Aireación Primaria</span>
             <span id="resLambda" class="text-lg sm:text-xl font-bold text-emerald-400 font-mono block mt-0.5">0.68</span>
-            <span class="text-[10px] sm:text-xs block text-zinc-500 mt-0.5">Factor (λ)</span>
+            <span class="text-[10px] sm:text-xs block text-zinc-500 mt-0.5">Venturi (λ_prim)</span>
           </div>
 
           <div class="bg-zinc-900 border-l-2 border-amber-500 rounded-sm p-3.5 sm:p-4">
@@ -284,9 +284,9 @@
           </div>
 
           <div class="bg-zinc-900 border-l-2 border-violet-500 rounded-sm p-3.5 sm:p-4">
-            <span class="text-[11px] text-zinc-500 block font-medium">Rendimiento (η)</span>
+            <span class="text-[11px] text-zinc-500 block font-medium">Rendimiento EE (NTC 2832-2)</span>
             <span id="resEff" class="text-lg sm:text-xl font-bold text-violet-400 font-mono block mt-0.5">58.2 %</span>
-            <span class="text-[10px] sm:text-xs block text-zinc-500 mt-0.5">Mín: 52.0%</span>
+            <span id="resEffDiff" class="text-[10px] sm:text-xs block text-zinc-500 mt-0.5">Mín: 52.0% (Num 4.1)</span>
           </div>
         </div>
 
@@ -619,7 +619,7 @@
             <thead>
               <tr class="text-zinc-500 border-b border-zinc-800">
                 <th class="text-left py-1.5 font-sans font-semibold">Gas</th>
-                <th class="text-right py-1.5 font-sans font-semibold">λ estimado</th>
+                <th class="text-right py-1.5 font-sans font-semibold">λ_prim (Venturi)</th>
                 <th class="text-right py-1.5 font-sans font-semibold">Kc despejado</th>
                 <th class="text-right py-1.5 font-sans font-semibold">Estado</th>
               </tr>
@@ -692,8 +692,8 @@
 
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-violet-500/30 space-y-4">
         <div>
-          <h3 class="text-sm font-bold text-violet-400 flex items-center gap-2">📈 Modelo de Eficiencia (η) — Calibración desde Ensayos Reales</h3>
-          <p class="text-[11px] text-zinc-500 mt-1.5">Lee un JSON externo con ensayos calorimétricos reales para ajustar por regresión los coeficientes del modelo.</p>
+          <h3 class="text-sm font-bold text-violet-400 flex items-center gap-2">📈 Modelo de Rendimiento Térmico (EE) — Calibración NTC 2832-2</h3>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Ajusta por regresión multivariable el rendimiento energético oficial del quemador (EE_quemador, NTC 2832-2 Num 5.2.1) en función de la altura de parrilla (hPot) y la potencia térmica (P).</p>
         </div>
 
         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -709,10 +709,10 @@
             <thead>
               <tr class="text-zinc-500 border-b border-zinc-800">
                 <th class="text-left py-1.5 font-sans font-semibold">Producto / Quemador</th>
-                <th class="text-right py-1.5 font-sans font-semibold">Potencia (kW)</th>
+                <th class="text-right py-1.5 font-sans font-semibold">Potencia Pn (kW)</th>
                 <th class="text-right py-1.5 font-sans font-semibold">hPot (mm)</th>
                 <th class="text-right py-1.5 font-sans font-semibold">Olla / Corona (mm)</th>
-                <th class="text-right py-1.5 font-sans font-semibold">Eficiencia Real</th>
+                <th class="text-right py-1.5 font-sans font-semibold">EE NTC 2832-2 (%)</th>
               </tr>
             </thead>
             <tbody id="effDataBody" class="font-mono">
@@ -808,15 +808,15 @@
                   <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repCOPass">CUMPLE</td>
                 </tr>
                 <tr class="border-b border-zinc-800 print:border-slate-200">
-                  <td class="py-1">Rendimiento Térmico</td>
+                  <td class="py-1">Rendimiento EE (NTC 2832-2)</td>
                   <td class="py-1 text-center font-bold" id="repEff">58.2 %</td>
-                  <td class="py-1 text-center">≥ 52.0%</td>
+                  <td class="py-1 text-center">≥ 52.0% (Num 4.1)</td>
                   <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repEffPass">CUMPLE</td>
                 </tr>
                 <tr>
                   <td class="py-1">Estabilidad Llama</td>
                   <td class="py-1 text-center font-bold" id="repFlame">Azul Estable</td>
-                  <td class="py-1 text-center">Sin soplado/retorno</td>
+                  <td class="py-1 text-center">Sin desprendimiento/retorno</td>
                   <td class="py-1 text-right text-emerald-400 print:text-emerald-700 font-bold" id="repFlamePass">CUMPLE</td>
                 </tr>
               </tbody>
@@ -827,11 +827,11 @@
         </section>
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">IV. DISCUSIÓN DE RESULTADOS</h2>
-          <p id="ieeeDiscussion">La potencia térmica calculada presenta una desviación acorde a la especificación nominal.</p>
+          <p id="ieeeDiscussion">La potencia térmica calculada y el rendimiento energético cumplen con la especificación nominal.</p>
         </section>
         <section class="break-inside-avoid">
           <h2 class="text-xs font-bold font-sans uppercase tracking-wider text-zinc-200 print:text-black border-b border-zinc-700 print:border-slate-400 pb-1 mb-2">V. CONCLUSIONES Y DICTAMEN</h2>
-          <p id="ieeeConclusion">El producto evaluado cumple satisfactoriamente con los requisitos NTC 2832-1.</p>
+          <p id="ieeeConclusion">El producto evaluado cumple satisfactoriamente con los requisitos de seguridad NTC 2832-1 y eficiencia energética NTC 2832-2.</p>
         </section>
       </div>
     </div>
@@ -853,6 +853,7 @@
     let effSlopePower = 0.80;
     let effSlopeLambda = 5.0;
     let effCalibCount = 0;
+    let effCalibDomain = { minH: 20.0, maxH: 26.0, minP: 1.0, maxP: 2.8 };
 
     function initChart() {
       const ctx = document.getElementById('chartPower').getContext('2d');
@@ -1036,6 +1037,18 @@
       document.getElementById('resLambda').innerText = lambdaPrim.toFixed(2);
       document.getElementById('resCO').innerText = coPpm.toFixed(0) + " ppm";
       document.getElementById('resEff').innerText = effPct.toFixed(1) + " %";
+
+      const isExtrapolated = effCalibCount > 0 && (hPot < effCalibDomain.minH - 0.5 || hPot > effCalibDomain.maxH + 0.5 || powerKw < effCalibDomain.minP - 0.2 || powerKw > effCalibDomain.maxP + 0.2);
+      const effDiffEl = document.getElementById('resEffDiff');
+      if (effDiffEl) {
+        if (isExtrapolated) {
+          effDiffEl.innerText = "⚠️ Extrapolado (rango ensayado " + effCalibDomain.minH.toFixed(0) + "-" + effCalibDomain.maxH.toFixed(0) + "mm, " + effCalibDomain.minP.toFixed(1) + "-" + effCalibDomain.maxP.toFixed(1) + "kW)";
+          effDiffEl.className = "text-[10px] sm:text-xs block text-amber-400 font-semibold mt-0.5";
+        } else {
+          effDiffEl.innerText = "Mín: 52.0% (NTC 2832-2 Num 4.1)";
+          effDiffEl.className = "text-[10px] sm:text-xs block text-zinc-500 mt-0.5";
+        }
+      }
 
       const passCO = coPpm <= 1000.0;
       const passEff = effPct >= 52.0;
@@ -1803,13 +1816,15 @@
       });
       const r2 = ssTot > 0 ? (1 - ssRes / ssTot) : null;
 
-      coefsEl.innerText = 'η_base=' + base.toFixed(2) + '% | s_h=' + slopeH.toFixed(3) + ' | s_P=' + slopeP.toFixed(3) + ' | s_λ=' + slopeL.toFixed(3) + ' (n=' + n + ')';
-      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'Regresión multivariable (hParrilla + Potencia + λ).';
+      coefsEl.innerText = 'EE_base=' + base.toFixed(2) + '% | s_h=' + slopeH.toFixed(3) + ' | s_P=' + slopeP.toFixed(3) + ' | s_λ=' + slopeL.toFixed(3) + ' (n=' + n + ')';
+      r2El.innerText = (r2 !== null ? ('R² = ' + r2.toFixed(3) + ' — ') : '') + 'Regresión multivariable NTC 2832-2 (hParrilla + Potencia Pn, olla normalizada acoplada según Tabla 1).';
       applyBtn.disabled = false;
       applyBtn.dataset.effBase = base.toFixed(4);
       applyBtn.dataset.effSlopeH = slopeH.toFixed(4);
-      applyBtn.dataset.effSlopeP = slopeP.toFixed(4);
-      applyBtn.dataset.effSlopeL = slopeL.toFixed(4);
+      applyBtn.dataset.effMinH = Math.min(...valid.map(r => r.hPot)).toFixed(1);
+      applyBtn.dataset.effMaxH = Math.max(...valid.map(r => r.hPot)).toFixed(1);
+      applyBtn.dataset.effMinP = Math.min(...valid.map(r => (r.potenciaKw || 2.0))).toFixed(2);
+      applyBtn.dataset.effMaxP = Math.max(...valid.map(r => (r.potenciaKw || 2.0))).toFixed(2);
       applyBtn.dataset.effN = String(n);
     }
 
@@ -1821,6 +1836,14 @@
       effSlopePower = parseFloat(btn.dataset.effSlopeP);
       effSlopeLambda = parseFloat(btn.dataset.effSlopeL);
       effCalibCount = parseInt(btn.dataset.effN, 10);
+      if (btn.dataset.effMinH) {
+        effCalibDomain = {
+          minH: parseFloat(btn.dataset.effMinH),
+          maxH: parseFloat(btn.dataset.effMaxH),
+          minP: parseFloat(btn.dataset.effMinP),
+          maxP: parseFloat(btn.dataset.effMaxP)
+        };
+      }
       updateEffCalibStatus();
       runSimulation();
       switchTab('sim');
