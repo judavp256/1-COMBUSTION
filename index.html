@@ -133,25 +133,12 @@
           </select>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-semibold text-zinc-400">Presión Atmosférica del Sitio (mbar)</label>
-            <input type="number" id="pAtmSelect" value="1013.25" step="0.1" onchange="runSimulation()" oninput="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
-            <div class="flex flex-wrap gap-1 mt-1.5">
-              <button type="button" onclick="setPAtm(1013.25)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Mar · 1013</button>
-              <button type="button" onclick="setPAtm(850.0)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Med · 850</button>
-              <button type="button" onclick="setPAtm(750.0)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Bog · 750</button>
-            </div>
+        <div class="p-2.5 rounded-md bg-cyan-950/30 border border-cyan-500/20 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-cyan-400 font-bold">🏛️ Referencia Estándar NTC 2832-1:</span>
+            <span class="text-zinc-300 font-mono">1013.25 mbar · 15.0 °C (fijo normativo)</span>
           </div>
-          <div>
-            <label class="text-xs font-semibold text-zinc-400">Temperatura Ambiente / Gas (°C)</label>
-            <input type="number" id="tSiteSelect" value="15.0" step="0.5" onchange="runSimulation()" oninput="runSimulation()" class="w-full mt-1 p-2.5 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
-            <div class="flex flex-wrap gap-1 mt-1.5">
-              <button type="button" onclick="setTSite(15.0)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">NTC · 15°C</button>
-              <button type="button" onclick="setTSite(20.0)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Lab · 20°C</button>
-              <button type="button" onclick="setTSite(25.0)" class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40">Cálido · 25°C</button>
-            </div>
-          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-semibold font-mono">Pn Nominal de Placa</span>
         </div>
 
         <div>
@@ -1003,9 +990,9 @@
       const aPorts = parseFloat(document.getElementById('aPorts').value);
       const hPot = parseFloat(document.getElementById('hPot').value);
       const pDecl = parseFloat(document.getElementById('declaredPower').value);
-      const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
-      const tSiteEl = document.getElementById('tSiteSelect');
-      const tSiteC = tSiteEl ? parseFloat(tSiteEl.value) : 15.0;
+      // Condiciones Estándar fijas NTC 2832-1 (15.0 °C, 1013.25 mbar):
+      const P_STD_MBAR = 1013.25;
+      const T_STD_C = 15.0;
 
       document.getElementById('valInj').innerText = dInj.toFixed(2) + " mm";
       document.getElementById('valPres').innerText = pSup.toFixed(1) + " mbar";
@@ -1020,7 +1007,7 @@
       const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
       // Ecuación 13 y 14 GASURE / NTC 2832-1 (Caudal estándar normalizado a 15°C y 1013.25 mbar):
       const vIdealRef = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
-      const ntcFactor = ntcCorrectionFactor(pAtm, pSup, tSiteC);
+      const ntcFactor = ntcCorrectionFactor(P_STD_MBAR, pSup, T_STD_C);
       const qStdM3H = areaInj * cd * vIdealRef * ntcFactor * 3600.0;
       const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
@@ -1127,14 +1114,14 @@
       const powers = [];
       const upper = [];
       const lower = [];
-      const tSiteEl = document.getElementById('tSiteSelect');
-      const tSiteC = tSiteEl ? parseFloat(tSiteEl.value) : 15.0;
+      const P_STD_MBAR = 1013.25;
+      const T_STD_C = 15.0;
       const tol = getNtcPowerTolerance(pDecl, dInj);
 
       pressures.forEach(p => {
         const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
         const vIdealRef = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr));
-        const ntcFactor = ntcCorrectionFactor(pAtm, p, tSiteC);
+        const ntcFactor = ntcCorrectionFactor(P_STD_MBAR, p, T_STD_C);
         const qStdM3H = areaInj * cd * vIdealRef * ntcFactor * 3600.0;
         const pKw = qStdM3H * gas.pcs * powerCorrectionFactor;
         powers.push(pKw.toFixed(2));
@@ -1166,9 +1153,8 @@
       const aPorts = parseFloat(document.getElementById('aPorts').value);
       const hPot = parseFloat(document.getElementById('hPot').value);
       const pDecl = parseFloat(document.getElementById('declaredPower').value);
-      const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
-      const tSiteEl = document.getElementById('tSiteSelect');
-      const tSiteC = tSiteEl ? parseFloat(tSiteEl.value) : 15.0;
+      const P_STD_MBAR = 1013.25;
+      const T_STD_C = 15.0;
 
       const gas = GASES[gasKey];
       const steps = 25;
@@ -1194,7 +1180,7 @@
 
           const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
           const vIdealRef = Math.sqrt((2.0 * pSup * 100.0) / (1.225 * gas.dr));
-          const ntcFactor = ntcCorrectionFactor(pAtm, pSup, tSiteC);
+          const ntcFactor = ntcCorrectionFactor(P_STD_MBAR, pSup, T_STD_C);
           const qStdM3H = areaInj * cd * vIdealRef * ntcFactor * 3600.0;
           const powerKw = qStdM3H * gas.pcs * powerCorrectionFactor;
 
@@ -1391,13 +1377,13 @@
       const qAirRaw = parseFloat(document.getElementById('airQ').value);
       const pAir = parseFloat(document.getElementById('airP').value);
       const pGas = parseFloat(document.getElementById('gasP').value);
-      const pAtm = parseFloat(document.getElementById('pAtmSelect').value);
+      const P_STD_MBAR = 1013.25;
       const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
       const gas = GASES[gasKey];
       const mode = document.getElementById('airCalcMode').value;
       const altCorrected = document.getElementById('airAltCorrected').checked;
 
-      if (isNaN(qAirRaw) || isNaN(pAir) || isNaN(pGas) || isNaN(pAtm) || pAir <= 0 || pGas <= 0) {
+      if (isNaN(qAirRaw) || isNaN(pAir) || isNaN(pGas) || pAir <= 0 || pGas <= 0) {
         document.getElementById('airQ15').innerText = "—";
         document.getElementById('airQAirSistema').innerText = "—";
         document.getElementById('airQGas').innerText = "—";
@@ -1416,8 +1402,8 @@
       document.getElementById('airQ15').innerText = qAir15.toFixed(1) + " L/h";
 
       // 2. Factores de corrección NTC a condiciones estándar (15°C, 1013.25 mbar)
-      const airSideFactor = altCorrected ? 1.0 : ntcCorrectionFactor(pAtm, pAir, refTempC);
-      const gasSideFactor = ntcCorrectionFactor(pAtm, pGas, refTempC);
+      const airSideFactor = altCorrected ? 1.0 : ntcCorrectionFactor(P_STD_MBAR, pAir, refTempC);
+      const gasSideFactor = ntcCorrectionFactor(P_STD_MBAR, pGas, refTempC);
 
       // 3. Caudal de aire a la presión nominal del producto montado (normalizado NTC):
       const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
@@ -1561,17 +1547,6 @@
       document.getElementById('burnerType').value = 'cerrado';
       onBurnerTypeChange();
       switchTab('sim');
-    }
-
-    function setPAtm(val) {
-      document.getElementById('pAtmSelect').value = val;
-      runSimulation();
-    }
-
-    function setTSite(val) {
-      const el = document.getElementById('tSiteSelect');
-      if (el) el.value = val;
-      runSimulation();
     }
 
     function updatePcfDisplay() {
@@ -1811,11 +1786,8 @@
       const archLabel = burnerType === 'cerrado'
         ? 'Cerrado (inyector integrado en difusor, línea hermética)'
         : 'Abierto (venturi con tubo mezclador y arrastre de aire)';
-      const pAtmVal = document.getElementById('pAtmSelect').value;
-      const tSiteEl = document.getElementById('tSiteSelect');
-      const tSiteVal = tSiteEl ? tSiteEl.value : '15.0';
       document.getElementById('repBurnerType').innerText = archLabel;
-      document.getElementById('repSiteCond').innerText = pAtmVal + " mbar / " + tSiteVal + " °C";
+      document.getElementById('repSiteCond').innerText = "1013.25 mbar / 15.0 °C (Estándar NTC 2832-1)";
       const pDeclVal = parseFloat(document.getElementById('declaredPower').value);
       const dInjVal = parseFloat(document.getElementById('dInj').value);
       const tolObj = getNtcPowerTolerance(pDeclVal, dInjVal);
