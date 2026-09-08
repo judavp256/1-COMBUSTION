@@ -696,14 +696,13 @@
           <p class="text-[11px] text-zinc-500 mt-1.5">Lee un JSON externo con ensayos calorimétricos reales para ajustar por regresión los coeficientes del modelo.</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
-          <div>
-            <label class="text-xs text-zinc-400">URL Raw del JSON en GitHub</label>
-            <input type="text" id="effJsonUrl" placeholder="https://raw.githubusercontent.com/usuario/repo/branch/ruta/eficiencia.json" class="w-full mt-1 p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-white font-mono">
-          </div>
-          <button onclick="loadEfficiencyData()" class="px-4 py-2.5 text-xs font-bold rounded-md bg-violet-500 hover:bg-violet-400 text-zinc-950 transition-all whitespace-nowrap">Cargar desde GitHub</button>
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+          <input type="hidden" id="effJsonUrl" value="https://raw.githubusercontent.com/judavp256/1-COMBUSTION/refs/heads/master/data/eficiencia.json">
+          <p id="effLoadStatus" class="text-[11px] text-zinc-500">Cargando base de ensayos...</p>
+          <button onclick="loadEfficiencyData()" title="Sincronizar base de datos de ensayos" class="self-start sm:self-auto px-3 py-1.5 text-xs font-bold rounded-md bg-zinc-800 hover:bg-zinc-700 text-violet-300 border border-violet-500/30 transition-all flex items-center gap-1.5">
+            🔄 Sincronizar Ensayos
+          </button>
         </div>
-        <p id="effLoadStatus" class="text-[11px] text-zinc-500"></p>
 
         <div class="overflow-x-auto">
           <table class="w-full text-[11px] border-collapse">
