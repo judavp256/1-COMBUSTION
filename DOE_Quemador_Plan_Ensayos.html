@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: "Times New Roman", serif;
+    font-size: 12pt;
+    margin: 2.5cm 3cm 2.5cm 3cm;
+    color: #000000;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 6pt;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6pt;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 18pt;
+    margin-bottom: 6pt;
+    border-bottom: 1px solid #000;
+    padding-bottom: 3pt;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 12pt;
+    margin-bottom: 4pt;
+  }
+  p {
+    text-align: justify;
+    margin-bottom: 8pt;
+  }
+  .center {
+    text-align: center;
+  }
+  .portada {
+    text-align: center;
+    margin-top: 60pt;
+    margin-bottom: 30pt;
+  }
+  .portada p {
+    text-align: center;
+  }
+  .portada .titulo {
+    font-size: 16pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 20pt;
+    line-height: 1.8;
+  }
+  .portada .subtitulo {
+    font-size: 12pt;
+    margin-bottom: 8pt;
+  }
+  .portada .dato {
+    font-size: 11pt;
+    margin-bottom: 4pt;
+  }
+  .portada .linea {
+    border-top: 1px solid #000;
+    margin: 20pt auto;
+    width: 60%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12pt 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background-color: #1a3a5c;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 6pt 8pt;
+    text-align: center;
+    border: 1px solid #000;
+  }
+  td {
+    padding: 5pt 8pt;
+    border: 1px solid #aaa;
+    text-align: center;
+    vertical-align: middle;
+  }
+  td.left {
+    text-align: left;
+  }
+  tr:nth-child(even) {
+    background-color: #f0f4f8;
+  }
+  tr.central {
+    background-color: #d4edda;
+    font-weight: bold;
+  }
+  tr.axial {
+    background-color: #fff3cd;
+  }
+  .firma-box {
+    border: 1px solid #000;
+    padding: 10pt;
+    margin-top: 10pt;
+    display: inline-block;
+    width: 42%;
+    vertical-align: top;
+    margin-right: 5%;
+    text-align: center;
+    min-height: 60pt;
+  }
+  .alerta {
+    border-left: 4px solid #1a3a5c;
+    background-color: #eef4fb;
+    padding: 8pt 12pt;
+    margin: 10pt 0;
+    font-size: 11pt;
+  }
+  .pagebreak {
+    page-break-before: always;
+  }
+  ul, ol {
+    margin: 4pt 0 8pt 20pt;
+    padding: 0;
+  }
+  li {
+    margin-bottom: 4pt;
+    text-align: justify;
+  }
+  .formula {
+    text-align: center;
+    font-style: italic;
+    margin: 10pt 0;
+    font-size: 11.5pt;
+  }
+  .footnote {
+    font-size: 10pt;
+    color: #333;
+    border-top: 1px solid #aaa;
+    margin-top: 20pt;
+    padding-top: 6pt;
+  }
+  .resumen-tabla th {
+    background-color: #2c5f2e;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PORTADA -->
+<!-- ============================================================ -->
+<div class="portada">
+  <div class="linea"></div>
+  <div class="titulo">
+    PLAN DE DISEÑO EXPERIMENTAL (DoE)<br>
+    OPTIMIZACIÓN DE EFICIENCIA TÉRMICA Y EMISIONES<br>
+    EN QUEMADOR ATMOSFÉRICO ABIERTO DOMÉSTICO
+  </div>
+  <div class="linea"></div>
+  <p class="subtitulo"><strong>Normativa de Referencia:</strong> NTC 2832-1 &nbsp;/&nbsp; ISO 23550</p>
+  <p class="dato"><strong>Tipo de Diseño:</strong> Diseño Central Compuesto (CCD) de Segundo Orden — 3 Factores</p>
+  <p class="dato"><strong>Método de Análisis:</strong> Superficie de Respuesta (RSM) + Función de Deseabilidad Multiobjetivo</p>
+  <p class="dato"><strong>Objetivo:</strong> Incrementar la Eficiencia Térmica de ≥62.5% manteniendo CO ≤450 ppm</p>
+  <div class="linea"></div>
+  <p class="dato"><strong>Configuración Base del Quemador Ensayado:</strong></p>
+  <p class="dato">Diámetro del Inyector: 0.99 mm &nbsp;|&nbsp; Cd = 0.853</p>
+  <p class="dato">Tubo Venturi Cónico: Ø10 mm → Ø12.7 mm &nbsp;|&nbsp; Longitud: 57 mm</p>
+  <p class="dato">Ventana de Aire Primario: 25.25 mm de longitud (desde x = 0)</p>
+  <p class="dato">Presión de Ensayo: 20.0 mbar (Gas Referencia G20 – NTC 2832-1)</p>
+  <p class="dato">Resultado de Referencia Medido: η ≈ 58.0% &nbsp;|&nbsp; CO ≈ 260 ppm</p>
+  <div class="linea"></div>
+  <br>
+  <div style="display:inline-block; width:45%; vertical-align:top; text-align:center;">
+    <p><strong>Elaborado por:</strong></p>
+    <br><br>
+    <p>______________________________</p>
+    <p>Responsable del Laboratorio</p>
+  </div>
+  <div style="display:inline-block; width:45%; vertical-align:top; text-align:center;">
+    <p><strong>Revisado por:</strong></p>
+    <br><br>
+    <p>______________________________</p>
+    <p>Técnico de Banco de Pruebas</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 1: OBJETIVO Y ALCANCE -->
+<!-- ============================================================ -->
+<div class="pagebreak"></div>
+
+<h2>1. Objetivo y Alcance del Estudio</h2>
+
+<p>El presente plan de ensayos establece la metodología formal para el estudio sistemático de los factores geométricos y operativos del quemador atmosférico abierto descrito en la portada, con el propósito de identificar la configuración de diseño que maximice la eficiencia térmica y minimice las emisiones de monóxido de carbono (CO) dentro de los límites exigidos por la norma colombiana NTC 2832-1.</p>
+
+<p>Los resultados previos del laboratorio establecen las condiciones de referencia: eficiencia térmica medida de <strong>≈58.0%</strong> y concentración de CO de <strong>≈260 ppm</strong>. El objetivo cuantificado del estudio es alcanzar una eficiencia <strong>≥62.5%</strong> sin superar el límite normativo de <strong>1000 ppm de CO</strong> (con una meta técnica conservadora de ≤450 ppm).</p>
+
+<div class="alerta">
+  <strong>Importancia:</strong> Este diseño experimental permite encontrar el punto óptimo de operación del quemador con un número mínimo de ensayos (15 corridas), evitando el maquinado de prototipos innecesarios y reduciendo el tiempo total de desarrollo.
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 2: FUNDAMENTACIÓN TEÓRICA DE VARIABLES -->
+<!-- ============================================================ -->
+<h2>2. Fundamentación Teórica de las Variables Seleccionadas</h2>
+
+<p>Las tres variables de entrada del DoE fueron seleccionadas con base en la teoría de transferencia de calor, mecánica de fluidos de eyectores y cinética química de combustión, con soporte en los fundamentos de la NTC 2832-1 y la literatura de quemadores atmosféricos. A continuación se documenta la relación física causal de cada variable con las respuestas de interés.</p>
+
+<h3>Variable 1 (X₁): Altura del Quemador a la Base de la Olla — H_pot (mm)</h3>
+
+<p><strong>¿Cómo se modifica en el banco?</strong> Mediante suplementos o arandelas de espesor calibrado colocadas bajo la base de la olla sobre la parrilla de ensayo. Modificación en segundos sin alterar el quemador.</p>
+
+<p><strong>Relación teórica con la Eficiencia Térmica (η):</strong></p>
+<p>La tasa de transferencia de calor desde los productos de combustión hacia la base de la olla se rige por los mecanismos de convección forzada y radiación térmica:</p>
+<div class="formula">q_útil = h · A_olla · (T_gases − T_olla) + ε · σ · A_olla · (T_gases⁴ − T_olla⁴)</div>
+<p>Al reducir H_pot, la trayectoria del chorro caliente de gases de combustión disminuye, el coeficiente de transferencia convectiva (h) aumenta por mayor velocidad de impacto, y se reduce la mezcla de los gases calientes con el aire frío ambiental lateral. El resultado neto es una mayor cantidad de calor absorbida por la olla.</p>
+
+<p><strong>Relación teórica con las Emisiones de CO:</strong></p>
+<p>La reacción de oxidación del monóxido de carbono CO + ½O₂ → CO₂ es sensible a la temperatura según la cinética de Arrhenius. Si H_pot se reduce por debajo de la altura del cono interno de llama, la pared fría de la olla (T ≈ 100°C) interrumpe abruptamente la zona de reacción, congelando la conversión CO→CO₂. Este fenómeno se denomina <em>Thermal Quenching</em> (Apagado Térmico) y genera picos de CO que pueden superar el límite normativo de 1000 ppm.</p>
+
+<p><strong>Grado de Impacto Esperado:</strong> CRÍTICO — Es la variable dominante tanto sobre la eficiencia como sobre las emisiones. Justifica ser el factor central del diseño experimental.</p>
+
+<h3>Variable 2 (X₂): Apertura Efectiva de la Ventana de Aire Primario — A_vent (%)</h3>
+
+<p><strong>¿Cómo se modifica en el banco?</strong> Mediante obturación parcial de la ventana de 25.25 mm con cinta metálica de aluminio de alta temperatura (las cintas se aplican desde los bordes de la ventana hacia el centro). Los niveles se expresan como porcentaje del área libre: 50%, 67%, 83%, 100%.</p>
+
+<p><strong>Relación teórica con la Eficiencia Térmica (η) y las Emisiones de CO:</strong></p>
+<p>En un quemador atmosférico abierto, el caudal de aire primario succionado por el efecto eyector del chorro de gas depende del área efectiva de paso por la ventana:</p>
+<div class="formula">ṁ_aire = Cd · A_vent · √(2 · ρ_aire · ΔP_succión)</div>
+<p>La relación de aire primario (λ_prim) define el tipo de llama y la temperatura adiabática de combustión. El rango teórico óptimo para quemadores atmosféricos residenciales de tipo venturi es λ_prim ≈ 0.65 – 0.72:</p>
+<ul>
+  <li><strong>Si A_vent es excesivamente reducida (< 50% libre):</strong> el déficit de aire primario (λ_prim < 0.55) genera llamas ricas en combustible no quemado, producción de partículas de hollín y un incremento severo de las emisiones de CO por combustión incompleta.</li>
+  <li><strong>Si A_vent es ≥ 70% libre:</strong> el área deja de ser el cuello de botella del proceso de succión, el quemador opera en el rango estequiométrico primario óptimo, la temperatura adiabática de llama es máxima y las emisiones de CO son mínimas.</li>
+</ul>
+
+<p><strong>Grado de Impacto Esperado:</strong> ALTO sobre las emisiones de CO; MEDIO-ALTO sobre la eficiencia térmica (al controlar indirectamente la temperatura de la llama).</p>
+
+<h3>Variable 3 (X₃): Posición Axial del Inyector respecto a la Entrada de la Garganta — x_inj (mm)</h3>
+
+<p><strong>¿Cómo se modifica en el banco?</strong> Desplazando axialmente el inyector sobre su guía roscada o soporte deslizante. Los valores positivos (+mm) corresponden a alejar el inyector hacia atrás (afuera), aumentando la distancia libre entre la punta del inyector y la entrada de la garganta de Ø10 mm. Los valores negativos (-mm) corresponden a introducir el inyector hacia adentro del tubo.</p>
+
+<p><strong>Relación teórica:</strong></p>
+<p>El chorro de gas que emerge del inyector genera un cono de expansión con un ángulo de apertura natural de θ ≈ 12°–15°. Al alejarse de la garganta (x_inj > 0), el chorro recorre una mayor distancia libre en contacto con el aire antes de entrar al tubo. Esta mayor distancia incrementa el área interfacial de cizallamiento entre el gas y el aire, aumentando el momento transferido al aire primario y, por consiguiente, el caudal de succión (λ_prim aumenta levemente).</p>
+<p>Existe un límite físico: si x_inj supera la distancia crítica (≈ 5–6 mm para este inyector), el diámetro del cono de gas supera el diámetro de la garganta y parte del gas se derrama al exterior, reduciendo la eficiencia de inducción.</p>
+
+<p><strong>Grado de Impacto Esperado:</strong> MEDIO — Permite ajuste fino del λ_prim sin restricciones geométricas de área.</p>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 3: HIPÓTESIS ESTADÍSTICAS -->
+<!-- ============================================================ -->
+<div class="pagebreak"></div>
+<h2>3. Hipótesis Estadísticas del Estudio</h2>
+
+<p>El análisis estadístico de los resultados se realizará mediante Análisis de Varianza (ANOVA) con un nivel de significancia α = 0.05 (95% de confianza estadística). Las hipótesis formales son:</p>
+
+<h3>3.1 Hipótesis para la Variable de Respuesta Y₁: Eficiencia Térmica (η %)</h3>
+
+<table>
+  <tr>
+    <th style="width:20%">Hipótesis</th>
+    <th>Enunciado</th>
+  </tr>
+  <tr>
+    <td><strong>H₀,η (Nula)</strong></td>
+    <td class="left">Ninguno de los factores de diseño (H_pot, A_vent, x_inj) ni sus interacciones o efectos cuadráticos tienen un efecto estadísticamente significativo sobre la eficiencia térmica del quemador. Todos los coeficientes del modelo de superficie de respuesta son iguales a cero: β₁ = β₂ = β₃ = β₁₁ = β₂₂ = β₃₃ = β₁₂ = β₁₃ = β₂₃ = 0.</td>
+  </tr>
+  <tr>
+    <td><strong>H₁,η (Alternativa)</strong></td>
+    <td class="left">Al menos uno de los factores principales, sus interacciones o sus efectos cuadráticos tiene un efecto estadísticamente significativo sobre la eficiencia térmica. Existe curvatura en la superficie de respuesta (βᵢⱼ ≠ 0 para algún par i,j), lo que confirma la necesidad de un modelo de segundo orden para encontrar el óptimo.</td>
+  </tr>
+</table>
+
+<h3>3.2 Hipótesis para la Variable de Respuesta Y₂: Emisiones de CO (ppm)</h3>
+
+<table>
+  <tr>
+    <th style="width:20%">Hipótesis</th>
+    <th>Enunciado</th>
+  </tr>
+  <tr>
+    <td><strong>H₀,CO (Nula)</strong></td>
+    <td class="left">Ninguno de los factores de diseño ni sus interacciones tienen un efecto estadísticamente significativo sobre la concentración de emisiones de monóxido de carbono. Todos los coeficientes del modelo son iguales a cero.</td>
+  </tr>
+  <tr>
+    <td><strong>H₁,CO (Alternativa)</strong></td>
+    <td class="left">Al menos uno de los factores tiene un efecto significativo sobre la concentración de CO. Se espera particularmente un efecto cuadrático significativo del factor H_pot (β₁₁ ≠ 0), asociado al fenómeno de Thermal Quenching que genera un pico de emisiones cuando H_pot se reduce por debajo de la altura crítica del cono de llama.</td>
+  </tr>
+</table>
+
+<p>El criterio de decisión es: si el P-valor calculado en el ANOVA para un factor o interacción es <strong>P < 0.05</strong>, se rechaza la hipótesis nula y se confirma que dicho factor influye significativamente sobre la respuesta. El modelo final deberá cumplir <strong>R² ≥ 0.90</strong>.</p>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 4: FACTORES Y NIVELES -->
+<!-- ============================================================ -->
+<h2>4. Definición de Factores y Niveles del Diseño Central Compuesto</h2>
+
+<table>
+  <tr>
+    <th>Factor</th>
+    <th>Parámetro de Diseño</th>
+    <th>Nivel −α (Axial Mín)</th>
+    <th>Nivel −1 (Bajo)</th>
+    <th>Nivel 0 (Centro)</th>
+    <th>Nivel +1 (Alto)</th>
+    <th>Nivel +α (Axial Máx)</th>
+  </tr>
+  <tr>
+    <td><strong>X₁</strong></td>
+    <td class="left"><strong>Altura a la Olla H_pot (mm)</strong><br><em>Suplementos bajo la olla</em></td>
+    <td>11.5 mm</td>
+    <td>12.5 mm</td>
+    <td><strong>14.0 mm</strong></td>
+    <td>15.5 mm</td>
+    <td>16.5 mm</td>
+  </tr>
+  <tr>
+    <td><strong>X₂</strong></td>
+    <td class="left"><strong>Apertura Ventana Aire A_vent (%)</strong><br><em>Cinta metálica aluminio</em></td>
+    <td>50 %</td>
+    <td>67 %</td>
+    <td><strong>83 %</strong></td>
+    <td>100 %</td>
+    <td>100 %*</td>
+  </tr>
+  <tr>
+    <td><strong>X₃</strong></td>
+    <td class="left"><strong>Posición Inyector x_inj (mm)</strong><br><em>Desplazamiento axial hacia atrás</em></td>
+    <td>0.0 mm</td>
+    <td>1.0 mm</td>
+    <td><strong>2.5 mm</strong></td>
+    <td>4.0 mm</td>
+    <td>5.0 mm</td>
+  </tr>
+</table>
+<p style="font-size:10pt;">*Nota: El nivel axial máximo de X₂ coincide con el nivel alto (+1) ya que el 100% representa el límite físico absoluto de apertura total de la ventana.</p>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 5: MATRIZ EXPERIMENTAL -->
+<!-- ============================================================ -->
+<div class="pagebreak"></div>
+<h2>5. Matriz de Ensayos — Plan de Ejecución para el Técnico</h2>
+
+<div class="alerta">
+  <strong>Instrucción al Técnico:</strong> Ejecutar los ensayos en el orden exacto indicado en la columna "N° Ensayo". El orden presentado está aleatorizado para evitar sesgos por calentamiento progresivo del quemador o de los instrumentos. Registrar los valores medidos en las columnas Y₁, Y₂ e Y₃ inmediatamente después de cada ensayo antes de pasar al siguiente. Estabilizar el quemador por mínimo 3 minutos antes de tomar cada medición.
+</div>
+
+<table>
+  <tr>
+    <th style="width:4%">N°</th>
+    <th style="width:12%">Tipo de Punto</th>
+    <th style="width:14%">X₁: Altura H_pot (mm)</th>
+    <th style="width:18%">X₂: Apertura Ventana (%)<br><em>Cinta Aluminio</em></th>
+    <th style="width:15%">X₃: Posición Inyector x_inj (mm)</th>
+    <th style="width:12%">Y₁: Eficiencia η (%)</th>
+    <th style="width:12%">Y₂: CO (ppm)</th>
+    <th style="width:13%">Y₃: Potencia Real (kW)</th>
+  </tr>
+  <tr>
+    <td><strong>1</strong></td>
+    <td>Factorial</td>
+    <td>12.5</td>
+    <td>67 % (1/3 tapada)</td>
+    <td>1.0 mm (casi raz)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>2</strong></td>
+    <td>Factorial</td>
+    <td>15.5</td>
+    <td>67 % (1/3 tapada)</td>
+    <td>1.0 mm (casi raz)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>3</strong></td>
+    <td>Factorial</td>
+    <td>12.5</td>
+    <td>100 % (abierta total)</td>
+    <td>1.0 mm (casi raz)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>4</strong></td>
+    <td>Factorial</td>
+    <td>15.5</td>
+    <td>100 % (abierta total)</td>
+    <td>1.0 mm (casi raz)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>5</strong></td>
+    <td>Factorial</td>
+    <td>12.5</td>
+    <td>67 % (1/3 tapada)</td>
+    <td>4.0 mm (retirado)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>6</strong></td>
+    <td>Factorial</td>
+    <td>15.5</td>
+    <td>67 % (1/3 tapada)</td>
+    <td>4.0 mm (retirado)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>7</strong></td>
+    <td>Factorial</td>
+    <td>12.5</td>
+    <td>100 % (abierta total)</td>
+    <td>4.0 mm (retirado)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <td><strong>8</strong></td>
+    <td>Factorial</td>
+    <td>15.5</td>
+    <td>100 % (abierta total)</td>
+    <td>4.0 mm (retirado)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>9</strong></td>
+    <td>Axial (Lím. Mín X₁)</td>
+    <td><strong>11.5</strong></td>
+    <td>83 % (cinta leve)</td>
+    <td>2.5 mm (centro)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>10</strong></td>
+    <td>Axial (Lím. Máx X₁)</td>
+    <td><strong>16.5</strong></td>
+    <td>83 % (cinta leve)</td>
+    <td>2.5 mm (centro)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>11</strong></td>
+    <td>Axial (Lím. Mín X₂)</td>
+    <td>14.0</td>
+    <td><strong>50 % (mitad tapada)</strong></td>
+    <td>2.5 mm (centro)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>12</strong></td>
+    <td>Axial (Lím. Máx X₂)</td>
+    <td>14.0</td>
+    <td><strong>100 % (abierta total)</strong></td>
+    <td>2.5 mm (centro)</td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>13</strong></td>
+    <td>Axial (Lím. Mín X₃)</td>
+    <td>14.0</td>
+    <td>83 % (cinta leve)</td>
+    <td><strong>0.0 mm (raz)</strong></td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="axial">
+    <td><strong>14</strong></td>
+    <td>Axial (Lím. Máx X₃)</td>
+    <td>14.0</td>
+    <td>83 % (cinta leve)</td>
+    <td><strong>5.0 mm (muy retirado)</strong></td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr class="central">
+    <td><strong>15</strong></td>
+    <td>PUNTO CENTRAL<br>(Configuración Base Actual)</td>
+    <td><strong>14.0</strong></td>
+    <td><strong>83 %</strong></td>
+    <td><strong>2.5 mm</strong></td>
+    <td><em>~58.0 % (Ref.)</em></td>
+    <td><em>~260 ppm (Ref.)</em></td>
+    <td><em>~1.69–1.87 kW</em></td>
+  </tr>
+</table>
+
+<p style="font-size:10pt;"><strong>Convención de colores:</strong> <span style="background:#d4edda;padding:2pt 6pt;">Verde: Punto Central (Configuración Base)</span> &nbsp; <span style="background:#fff3cd;padding:2pt 6pt;">Amarillo: Puntos Axiales (Límites Físicos)</span></p>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 6: PROTOCOLO DE MEDICIÓN -->
+<!-- ============================================================ -->
+<div class="pagebreak"></div>
+<h2>6. Protocolo de Medición en Banco (NTC 2832-1)</h2>
+
+<h3>6.1 Condiciones Estándar del Ensayo</h3>
+<ul>
+  <li>Gas de ensayo: Gas Natural de Referencia G20 (Metano ≥ 99.5% pureza).</li>
+  <li>Presión nominal de ensayo: 20.0 mbar ± 0.5 mbar (verificar con manómetro calibrado antes de cada corrida).</li>
+  <li>Temperatura del agua inicial: T₁ = 15°C ± 2°C.</li>
+  <li>Temperatura ambiente del laboratorio: 15°C – 25°C (registrar al inicio de cada ensayo).</li>
+  <li>Presión barométrica del laboratorio: registrar el valor del barómetro al inicio de cada jornada.</li>
+</ul>
+
+<h3>6.2 Procedimiento Paso a Paso por Ensayo</h3>
+<ol>
+  <li>Verificar la presión de suministro de gas en 20.0 mbar y registrar en la hoja de datos.</li>
+  <li>Configurar el quemador según los valores de X₁, X₂ y X₃ indicados para el ensayo N° correspondiente:
+    <ul>
+      <li><strong>X₁ (Altura H_pot):</strong> Colocar los suplementos de la altura indicada bajo la olla. Verificar con calibrador Vernier.</li>
+      <li><strong>X₂ (Ventana de Aire):</strong> Aplicar la cinta metálica de aluminio en los bordes de la ventana de 25.25 mm hasta cubrir el porcentaje indicado. Verificar el área libre con regla o calibrador de láminas.</li>
+      <li><strong>X₃ (Posición Inyector):</strong> Desplazar el inyector la distancia indicada hacia atrás (alejándolo de la garganta del tubo). Verificar la distancia con calibrador de profundidad o galga de espesores.</li>
+    </ul>
+  </li>
+  <li>Llenar la olla de ensayo normalizada NTC con agua a T₁ = 15°C ± 2°C. Registrar masa de agua (kg) y temperatura inicial exacta.</li>
+  <li>Encender el quemador y estabilizar durante 3 minutos antes de iniciar la medición.</li>
+  <li>Registrar el tiempo de calentamiento (Δt en segundos) para elevar la temperatura del agua en ΔT = 40°C.</li>
+  <li>Registrar el volumen de gas consumido (m³ a condiciones estándar corregidas por NTC 0169).</li>
+  <li>Medir la concentración de CO en los productos de combustión usando la sonda de análisis de gases en la campana de muestreo. Expresar en ppm (base seca, referida a 0% O₂).</li>
+  <li>Calcular la Eficiencia Térmica (Y₁) y registrar los datos en la tabla de la Sección 5.</li>
+</ol>
+
+<h3>6.3 Cálculo de la Eficiencia Térmica</h3>
+<div class="formula">η (%) = [ (m_agua · Cp_agua · ΔT) + (m_olla · Cp_olla · ΔT) ] / (V_gas_std · PCS) × 100%</div>
+<p>Donde:</p>
+<ul>
+  <li>m_agua = masa de agua en la olla (kg)</li>
+  <li>Cp_agua = 4.186 kJ / (kg · °C)</li>
+  <li>ΔT = T₂ − T₁ (°C)</li>
+  <li>m_olla, Cp_olla = masa y calor específico del recipiente normalizado de ensayo</li>
+  <li>V_gas_std = volumen de gas corregido a 15°C y 1013.25 mbar (m³)</li>
+  <li>PCS = Poder Calorífico Superior del gas G20 (MJ/m³)</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 7: ANÁLISIS ESTADÍSTICO Y RSM -->
+<!-- ============================================================ -->
+<h2>7. Plan de Análisis Estadístico de Resultados</h2>
+
+<h3>7.1 Modelo de Superficie de Respuesta (Segundo Orden)</h3>
+<p>Una vez completados los 15 ensayos, los datos se procesarán mediante el siguiente modelo polinomial de segundo orden (Metodología de Superficie de Respuesta — RSM):</p>
+<div class="formula">Y = β₀ + β₁X₁ + β₂X₂ + β₃X₃ + β₁₁X₁² + β₂₂X₂² + β₃₃X₃² + β₁₂X₁X₂ + β₁₃X₁X₃ + β₂₃X₂X₃ + ε</div>
+<p>Este modelo se ajustará por separado para Y₁ (Eficiencia) y Y₂ (CO), generando las ecuaciones predictivas de ambas respuestas en función de los tres factores de diseño.</p>
+
+<h3>7.2 Criterios de Validación del Modelo</h3>
+<table>
+  <tr>
+    <th>Criterio</th>
+    <th>Valor Mínimo Requerido</th>
+    <th>Interpretación</th>
+  </tr>
+  <tr>
+    <td>Coeficiente de Determinación (R²)</td>
+    <td>≥ 0.90</td>
+    <td class="left">El modelo explica al menos el 90% de la variabilidad observada en los datos</td>
+  </tr>
+  <tr>
+    <td>Falta de Ajuste (P-Valor)</td>
+    <td>P > 0.05</td>
+    <td class="left">El modelo no presenta falta de ajuste significativa; la curvatura estimada es adecuada</td>
+  </tr>
+  <tr>
+    <td>P-Valor de Factores Significativos</td>
+    <td>P < 0.05</td>
+    <td class="left">El factor o interacción tiene un efecto estadísticamente real sobre la respuesta</td>
+  </tr>
+  <tr>
+    <td>R² Predictivo vs R² Ajustado</td>
+    <td>Diferencia &lt; 0.20</td>
+    <td class="left">El modelo no está sobreajustado y predice correctamente nuevas observaciones</td>
+  </tr>
+</table>
+
+<h3>7.3 Optimización por Función de Deseabilidad Multiobjetivo</h3>
+<p>Se aplicará la Función de Deseabilidad de Derringer-Suich para optimizar simultáneamente ambas respuestas:</p>
+<ul>
+  <li><strong>Y₁ (Eficiencia η):</strong> Maximizar — Meta: η ≥ 62.5%</li>
+  <li><strong>Y₂ (CO ppm):</strong> Minimizar — Meta: CO ≤ 450 ppm</li>
+  <li><strong>Y₃ (Potencia kW):</strong> Mantener en rango — Meta: 1.65 ≤ P ≤ 1.90 kW</li>
+</ul>
+<p>El resultado final será un conjunto de coordenadas (H_pot*, A_vent*, x_inj*) que representa la configuración de quemador que maximiza la deseabilidad global, definida como el punto donde η es máxima y CO es mínima al mismo tiempo.</p>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 8: HOJA DE REGISTRO CAMPO -->
+<!-- ============================================================ -->
+<div class="pagebreak"></div>
+<h2>8. Hoja de Registro de Campo — Para Uso del Técnico en Banco</h2>
+
+<div class="alerta">
+  Esta hoja debe imprimirse y llenarse durante la ejecución de cada ensayo. Al finalizar los 15 ensayos, entregar esta hoja al responsable del laboratorio para el análisis estadístico.
+</div>
+
+<p><strong>Fecha:</strong> _____________ &nbsp;&nbsp; <strong>Técnico:</strong> _________________________ &nbsp;&nbsp; <strong>Equipo de Análisis de Gases:</strong> _____________</p>
+<p><strong>Presión Barométrica Laboratorio:</strong> _______ mbar &nbsp;&nbsp; <strong>T° Ambiente:</strong> _______ °C &nbsp;&nbsp; <strong>Humedad Relativa:</strong> _______ %</p>
+
+<table>
+  <tr>
+    <th>N° Ensayo</th>
+    <th>H_pot (mm) Verificado</th>
+    <th>Ventana (% Libre) Verificado</th>
+    <th>x_inj (mm) Verificado</th>
+    <th>T₁ Inicial (°C)</th>
+    <th>T₂ Final (°C)</th>
+    <th>Δt (s)</th>
+    <th>V_gas (m³ std)</th>
+    <th><strong>η Y₁ (%)</strong></th>
+    <th><strong>CO Y₂ (ppm)</strong></th>
+    <th><strong>Potencia Y₃ (kW)</strong></th>
+    <th>Observaciones</th>
+  </tr>
+  <tr><td>1</td><td>12.5</td><td>67%</td><td>1.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td>15.5</td><td>67%</td><td>1.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td>12.5</td><td>100%</td><td>1.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td>15.5</td><td>100%</td><td>1.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td>12.5</td><td>67%</td><td>4.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>6</td><td>15.5</td><td>67%</td><td>4.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>7</td><td>12.5</td><td>100%</td><td>4.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>8</td><td>15.5</td><td>100%</td><td>4.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>9</td><td>11.5</td><td>83%</td><td>2.5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>10</td><td>16.5</td><td>83%</td><td>2.5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>11</td><td>14.0</td><td>50%</td><td>2.5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>12</td><td>14.0</td><td>100%</td><td>2.5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>13</td><td>14.0</td><td>83%</td><td>0.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#fff3cd;"><td>14</td><td>14.0</td><td>83%</td><td>5.0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr style="background:#d4edda;font-weight:bold;"><td>15</td><td>14.0</td><td>83%</td><td>2.5</td><td></td><td></td><td></td><td></td><td>~58.0%</td><td>~260 ppm</td><td>~1.87 kW</td><td>REFERENCIA BASE</td></tr>
+</table>
+
+<br>
+<p><strong>Firma del Técnico:</strong> __________________________________ &nbsp;&nbsp;&nbsp; <strong>Firma de Revisión:</strong> __________________________________</p>
+
+<div class="footnote">
+  <p><strong>Referencias Normativas:</strong> NTC 2832-1 (Artefactos domésticos para cocción a gas. Parte 1: Requisitos generales de seguridad) · NTC 0169 (Medición de caudales de gas) · ISO 23550 (Safety and control devices for gas burners) · Fundamentos de Combustión — Grupo GASURE, Universidad de Antioquia.</p>
+  <p><strong>Documento generado con soporte de la Plataforma de Laboratorio Virtual de Combustión.</strong></p>
+</div>
+
+</body>
+</html>
