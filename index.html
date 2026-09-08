@@ -222,12 +222,12 @@
 
         <div class="bg-zinc-950/60 p-3 rounded-md border border-zinc-800/70 flex items-center justify-between gap-2">
           <div>
-            <span class="text-xs font-semibold text-zinc-300 block">Factor de Corrección de Sitio</span>
-            <span class="text-[10px] text-zinc-500">Predicho × factor ≈ Real (calibrado en Metrología)</span>
+            <span class="text-xs font-semibold text-zinc-300 block">Factor de Corrección Térmica / Tren</span>
+            <span class="text-[10px] text-zinc-500">Predicho × factor = Real (editable o calibrable)</span>
           </div>
-          <div class="text-right shrink-0">
-            <span id="pcfDisplay" class="text-cyan-400 font-bold font-mono block">1.000</span>
-            <button type="button" onclick="resetPowerCorrection()" class="text-[10px] text-zinc-500 hover:text-rose-400 underline">restablecer</button>
+          <div class="text-right shrink-0 flex items-center gap-1.5">
+            <input type="number" id="pcfInput" value="1.000" step="0.005" min="0.50" max="1.50" oninput="onPcfInputChange()" class="w-20 p-1 text-xs bg-zinc-950 border border-zinc-700 rounded text-cyan-400 font-bold font-mono text-right focus:border-cyan-400 focus:outline-none">
+            <button type="button" onclick="resetPowerCorrection()" title="Restablecer a 1.000" class="text-[10px] text-zinc-500 hover:text-rose-400 underline">1.0</button>
           </div>
         </div>
 
@@ -551,6 +551,25 @@
         
         <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
         <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
+
+        <!-- Calibración Directa de Potencia Real / Factor Térmico -->
+        <div class="pt-2 border-t border-zinc-800 space-y-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+            <div>
+              <label class="text-xs text-zinc-400 block font-medium">Potencia Real Medida con Gas en Caliente (kW)</label>
+              <input type="number" id="airRealPowerInput" placeholder="ej. 1.70" step="0.01" oninput="onAirRealPowerChange()" class="w-full mt-1 p-2 text-xs bg-zinc-950 border border-zinc-800 rounded-md text-white font-mono">
+            </div>
+            <div id="rowAirPcfResult" class="hidden">
+              <span class="text-[11px] text-zinc-400 block font-medium">Factor Térmico / Tren de Gas:</span>
+              <span id="airPcfCalculated" class="text-base font-bold text-emerald-400 font-mono">1.000</span>
+            </div>
+          </div>
+          <p id="rowAirCorrectedP" class="hidden text-xs sm:text-sm text-emerald-300 font-semibold">-&gt; Potencia Ajustada con Factor: <span id="airPGasCorregida" class="font-bold text-emerald-400 font-mono">0 kW</span></p>
+          <div id="rowAirPcfApply" class="hidden pt-1">
+            <button type="button" onclick="applyAirPowerFactor()" class="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all">Aplicar Factor de Potencia al Simulador</button>
+          </div>
+        </div>
+
         <p class="text-[10px] text-zinc-500 pt-1 border-t border-zinc-800">📌 <em>Cálculo normalizado bajo NTC 2832-1 (15°C, 1013.25 mbar, ρ_aire = 1.225 kg/m³). Compatible con la calibración del Simulador R&amp;D.</em></p>
         <div id="rowAirApply" class="hidden pt-2">
           <button onclick="applyCalibratedCd()" class="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all">Aplicar Diámetro y Cd juntos al Simulador</button>
@@ -1519,6 +1538,68 @@
         const dEff = Math.sqrt(((qAir15 / 3600000.0) / (0.90 * vIdealAir)) * 4.0 / Math.PI) * 1000.0;
         document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
       }
+
+      onAirRealPowerChange();
+    }
+
+    function onAirRealPowerChange() {
+      const qAirRaw = parseFloat(document.getElementById('airQ').value);
+      const pAir = parseFloat(document.getElementById('airP').value);
+      const pGas = parseFloat(document.getElementById('gasP').value);
+      const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
+      const gas = GASES[gasKey];
+
+      const refTempC = parseFloat(document.getElementById('airRefTempC').value);
+      const refTempK = 273.15 + (isFinite(refTempC) ? refTempC : 15.0);
+      const qAir15 = qAirRaw * (PLATFORM_REF_TEMP_K / refTempK);
+      const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir);
+      const qGasEst = qAirSistemaEst * Math.sqrt(1.0 / gas.dr);
+      const pGasEst = (qGasEst / 1000.0) * gas.pcs;
+
+      const pRealInput = document.getElementById('airRealPowerInput');
+      const pReal = pRealInput ? parseFloat(pRealInput.value) : NaN;
+      const rowRes = document.getElementById('rowAirPcfResult');
+      const rowCorr = document.getElementById('rowAirCorrectedP');
+      const rowApply = document.getElementById('rowAirPcfApply');
+
+      if (isFinite(pReal) && pReal > 0 && isFinite(pGasEst) && pGasEst > 0) {
+        const factor = pReal / pGasEst;
+        const diffPct = ((factor - 1.0) * 100.0).toFixed(1);
+        const sign = factor >= 1.0 ? '+' : '';
+        document.getElementById('airPcfCalculated').innerText = factor.toFixed(4) + ' (' + sign + diffPct + '%)';
+        document.getElementById('airPGasCorregida').innerText = pReal.toFixed(2) + ' kW';
+        if (rowRes) rowRes.classList.remove('hidden');
+        if (rowCorr) rowCorr.classList.remove('hidden');
+        if (rowApply) rowApply.classList.remove('hidden');
+      } else {
+        if (rowRes) rowRes.classList.add('hidden');
+        if (rowCorr) rowCorr.classList.add('hidden');
+        if (rowApply) rowApply.classList.add('hidden');
+      }
+    }
+
+    function applyAirPowerFactor() {
+      const pRealInput = document.getElementById('airRealPowerInput');
+      const pReal = pRealInput ? parseFloat(pRealInput.value) : NaN;
+      const qAirRaw = parseFloat(document.getElementById('airQ').value);
+      const pAir = parseFloat(document.getElementById('airP').value);
+      const pGas = parseFloat(document.getElementById('gasP').value);
+      const gasKey = document.getElementById('airGasTarget').value === "G20" ? "G20_GAS_NATURAL" : "G31_PROPANO";
+      const gas = GASES[gasKey];
+
+      const refTempC = parseFloat(document.getElementById('airRefTempC').value);
+      const refTempK = 273.15 + (isFinite(refTempC) ? refTempC : 15.0);
+      const qAir15 = qAirRaw * (PLATFORM_REF_TEMP_K / refTempK);
+      const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir);
+      const qGasEst = qAirSistemaEst * Math.sqrt(1.0 / gas.dr);
+      const pGasEst = (qGasEst / 1000.0) * gas.pcs;
+
+      if (isFinite(pReal) && pReal > 0 && isFinite(pGasEst) && pGasEst > 0) {
+        powerCorrectionFactor = pReal / pGasEst;
+        updatePcfDisplay();
+        runSimulation();
+        switchTab('sim');
+      }
     }
 
     function applyCalibratedCd() {
@@ -1647,10 +1728,20 @@
       switchTab('sim');
     }
 
+    function onPcfInputChange() {
+      const el = document.getElementById('pcfInput');
+      const val = parseFloat(el ? el.value : '1.0');
+      if (isFinite(val) && val > 0) {
+        powerCorrectionFactor = val;
+        runSimulation();
+      }
+    }
+
     function updatePcfDisplay() {
-      const el = document.getElementById('pcfDisplay');
-      if (!el) return;
-      el.innerText = powerCorrectionFactor.toFixed(3);
+      const el = document.getElementById('pcfInput');
+      if (el) el.value = powerCorrectionFactor.toFixed(3);
+      const span = document.getElementById('pcfDisplay');
+      if (span) span.innerText = powerCorrectionFactor.toFixed(3);
     }
 
     function resetPowerCorrection() {
@@ -1705,6 +1796,7 @@
       if (!val) return;
       powerCorrectionFactor = parseFloat(val);
       updatePcfDisplay();
+      runSimulation();
       switchTab('sim');
     }
 
@@ -2023,6 +2115,7 @@
       if (tab === 'sim') {
         document.getElementById('tabSim').classList.remove('hidden');
         document.getElementById('btnTabSim').className = active;
+        runSimulation();
       } else if (tab === 'doe') {
         document.getElementById('tabDoe').classList.remove('hidden');
         document.getElementById('btnTabDoe').className = active;
