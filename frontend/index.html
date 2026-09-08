@@ -291,7 +291,7 @@
         </div>
 
         <div class="bg-zinc-900 p-4 sm:p-5 rounded-md border border-zinc-800">
-          <h3 class="text-xs sm:text-sm font-bold text-zinc-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión (±8% NTC)</h3>
+          <h3 id="chartPowerTitle" class="text-xs sm:text-sm font-bold text-zinc-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión (Tolerancia NTC 2832-1)</h3>
           <div class="w-full relative">
             <canvas id="chartPower" height="150"></canvas>
           </div>
@@ -1123,24 +1123,51 @@
     }
 
     function updateChart(burnerType, dInj, cd, gas, pDecl, pAtm, dThroat, lTube, kc) {
-      const pressures = [10, 14, 18, 22, 26, 30, 35];
+      if (!powerChart) return;
+
+      const pSupInput = parseFloat(document.getElementById('pSup').value);
+      const pNom = isFinite(pSupInput) && pSupInput > 0 ? pSupInput : 18.0;
+
+      // Generar 7 puntos de presión centrados en la presión de ensayo actual
+      const pMin = Math.max(5.0, Math.round(pNom * 0.5));
+      const pMax = Math.round(pNom * 1.5);
+      const step = (pMax - pMin) / 6.0;
+      const pressures = [];
+      for (let i = 0; i < 7; i++) {
+        pressures.push(parseFloat((pMin + i * step).toFixed(1)));
+      }
+
+      const P_STD_MBAR = 1013.25;
+      const T_STD_C = 15.0;
+      const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
+
+      // Calcular la potencia en el punto nominal de suministro para determinar la tolerancia NTC escalonada
+      const vIdealNom = Math.sqrt((2.0 * pNom * 100.0) / (1.225 * gas.dr));
+      const ntcFactorNom = ntcCorrectionFactor(P_STD_MBAR, pNom, T_STD_C);
+      const pNomSimKw = areaInj * cd * vIdealNom * ntcFactorNom * 3600.0 * gas.pcs * powerCorrectionFactor;
+
+      const hasDeclared = isFinite(pDecl) && pDecl > 0;
+      const refPowerKw = hasDeclared ? pDecl : pNomSimKw;
+      const tol = getNtcPowerTolerance(refPowerKw, dInj);
+
       const powers = [];
       const upper = [];
       const lower = [];
-      const P_STD_MBAR = 1013.25;
-      const T_STD_C = 15.0;
-      const tol = getNtcPowerTolerance(pDecl, dInj);
 
       pressures.forEach(p => {
-        const areaInj = (Math.PI / 4.0) * Math.pow(dInj / 1000.0, 2);
-        const vIdealRef = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr));
-        const ntcFactor = ntcCorrectionFactor(P_STD_MBAR, p, T_STD_C);
-        const qStdM3H = areaInj * cd * vIdealRef * ntcFactor * 3600.0;
-        const pKw = qStdM3H * gas.pcs * powerCorrectionFactor;
+        const vIdeal = Math.sqrt((2.0 * p * 100.0) / (1.225 * gas.dr));
+        const ntcF = ntcCorrectionFactor(P_STD_MBAR, p, T_STD_C);
+        const qStd = areaInj * cd * vIdeal * ntcF * 3600.0;
+        const pKw = qStd * gas.pcs * powerCorrectionFactor;
         powers.push(pKw.toFixed(2));
-        upper.push(isFinite(pDecl) && pDecl > 0 ? tol.upperKw.toFixed(2) : (pKw * 1.08).toFixed(2));
-        lower.push(isFinite(pDecl) && pDecl > 0 ? tol.lowerKw.toFixed(2) : (pKw * 0.92).toFixed(2));
+        upper.push(tol.upperKw.toFixed(2));
+        lower.push(tol.lowerKw.toFixed(2));
       });
+
+      const titleEl = document.getElementById('chartPowerTitle');
+      if (titleEl) {
+        titleEl.innerText = '📈 Curva de Sensibilidad: Potencia vs. Presión (Tol NTC ' + tol.label + ')';
+      }
 
       powerChart.data.labels = pressures;
       powerChart.data.datasets[0].data = powers;
