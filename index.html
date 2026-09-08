@@ -501,16 +501,14 @@
           <p class="text-[10px] text-zinc-500 mt-1.5">Los datos en SLph del manual vienen a $0^\circ\text{C}$ ($273.15\text{ K}$). El sistema los multiplica automáticamente por $\frac{288.15}{273.15} = 1.0549$ para llevarlos a $15^\circ\text{C}$ de la norma NTC 2832-1.</p>
         </div>
 
-        <!-- EXPLICACIÓN CLARA DEL CHECKBOX DE ALTITUD -->
+        <!-- EXPLICACIÓN CLARA DEL CAUDALÍMETRO Y ALTITUD -->
         <div class="bg-zinc-900 p-3 rounded-md border border-zinc-700 space-y-1.5">
           <label class="flex items-start gap-2 text-xs text-zinc-200 font-semibold cursor-pointer">
-            <input type="checkbox" id="airAltCorrected" onchange="runAirEquivalence()" class="mt-0.5 accent-cyan-400 w-4 h-4">
-            <span>¿El caudalímetro del banco ya aplica corrección por altitud barométrica local?</span>
+            <input type="checkbox" id="airAltCorrected" checked disabled class="mt-0.5 accent-cyan-400 w-4 h-4 cursor-not-allowed">
+            <span>Medición normalizada con sensor másico térmico (SLph NTC / 1013.25 mbar)</span>
           </label>
           <p class="text-[10px] text-zinc-400 leading-relaxed pl-6">
-            💡 <strong class="text-cyan-300">Guía rápida:</strong><br>
-            • <strong class="text-emerald-400">DEJAR DESMARCADO (Recomendado el 99% de las veces):</strong> Si tu banco te da el dato directamente en <strong>SLph</strong> (Standard Liters per hour) o si usa la referencia fija de fábrica de 1013.25 mbar. La plataforma se encarga de aplicar la corrección por la altitud barométrica de tu ciudad.<br>
-            • <strong class="text-amber-400">MARCAR SOLO SI:</strong> Un software de metrología externo o tú mismo ya aplicaste la ecuación de altitud de la NTC 2832-1 a ese número usando la presión barométrica medida ese día.
+            💡 <strong class="text-cyan-300">Compensación automática:</strong> El caudalímetro inteligente (tipo TEX MF-700 V2) mide masa de aire y compensa internamente la presión barométrica de la ciudad y la temperatura ambiente. La plataforma toma este valor normalizado y lo proyecta directamente a las condiciones estándar NTC 2832-1 ($15^\circ\text{C}$, $1013.25\text{ mbar}$, $\rho = 1.225\text{ kg/m}^3$).
           </p>
         </div>
       </div>
@@ -553,6 +551,7 @@
         
         <p id="rowAirDEff" class="text-xs sm:text-sm text-zinc-300">-&gt; Diámetro Efectivo Calculado (Cd=0.90): <span id="airDEff" class="font-bold text-amber-400 font-mono">0 mm</span></p>
         <p id="rowAirCd" class="hidden text-xs sm:text-sm text-zinc-300">-&gt; Coeficiente de Descarga Calculado: <span id="airCdResult" class="font-bold text-amber-400 font-mono">0</span></p>
+        <p class="text-[10px] text-zinc-500 pt-1 border-t border-zinc-800">📌 <em>Cálculo normalizado bajo NTC 2832-1 (15°C, 1013.25 mbar, ρ_aire = 1.225 kg/m³). Compatible con la calibración del Simulador R&amp;D.</em></p>
         <div id="rowAirApply" class="hidden pt-2">
           <button onclick="applyCalibratedCd()" class="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all">Aplicar Diámetro y Cd juntos al Simulador</button>
         </div>
@@ -1401,30 +1400,30 @@
 
       document.getElementById('airQ15').innerText = qAir15.toFixed(1) + " L/h";
 
-      // 2. Factores de corrección NTC a condiciones estándar (15°C, 1013.25 mbar)
-      const airSideFactor = altCorrected ? 1.0 : ntcCorrectionFactor(P_STD_MBAR, pAir, refTempC);
-      const gasSideFactor = ntcCorrectionFactor(P_STD_MBAR, pGas, refTempC);
-
-      // 3. Caudal de aire a la presión nominal del producto montado (normalizado NTC):
-      const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
+      // 2. Caudal de aire a la presión nominal del producto montado:
+      // Q_air(pGas) = Q_air(pAir) * sqrt(pGas / pAir)
+      const qAirSistemaEst = qAir15 * Math.sqrt(pGas / pAir);
       document.getElementById('airQAirSistema').innerText = qAirSistemaEst.toFixed(1) + " L/h";
 
-      // 4. Caudal de gas e inyector libre (normalizado NTC):
-      const qGasEst = qAir15 * Math.sqrt(1.0 / gas.dr) * Math.sqrt(pGas / pAir) * (gasSideFactor / airSideFactor);
+      // 3. Caudal de gas e inyector libre (normalizado NTC):
+      // Por Ley de Graham de difusión / orificios a igual delta P y conversión de presión:
+      // Q_gas(pGas) = Q_air15 * sqrt(1 / dr) * sqrt(pGas / pAir)
+      const qGasEst = qAirSistemaEst * Math.sqrt(1.0 / gas.dr);
       const pGasEst = (qGasEst / 1000.0) * gas.pcs;
 
       document.getElementById('airQGas').innerText = qGasEst.toFixed(1) + " L/h";
       document.getElementById('airPGas').innerText = pGasEst.toFixed(2) + " kW";
 
+      // Velocidad teórica de Bernoulli con densidad del aire estándar NTC (1.225 kg/m³):
+      const vIdealAir = Math.sqrt((2.0 * pAir * 100.0) / 1.225);
+
       if (mode === 'cd') {
         const dInjKnown = parseFloat(document.getElementById('airDInjKnown').value);
         const areaInjKnown = (Math.PI / 4.0) * Math.pow(dInjKnown / 1000.0, 2);
-        const vIdealAir = Math.sqrt((2.0 * pAir * 100.0) / 1.225);
-        const cdCalc = (qAir15 / 3600000.0) / (areaInjKnown * vIdealAir * airSideFactor);
+        const cdCalc = (qAir15 / 3600000.0) / (areaInjKnown * vIdealAir);
         document.getElementById('airCdResult').innerText = cdCalc.toFixed(3);
       } else {
-        const vIdealAir = Math.sqrt((2.0 * pAir * 100.0) / 1.225);
-        const dEff = Math.sqrt(((qAir15 / 3600000.0) / (0.90 * vIdealAir * airSideFactor)) * 4.0 / Math.PI) * 1000.0;
+        const dEff = Math.sqrt(((qAir15 / 3600000.0) / (0.90 * vIdealAir)) * 4.0 / Math.PI) * 1000.0;
         document.getElementById('airDEff').innerText = dEff.toFixed(3) + " mm";
       }
     }
