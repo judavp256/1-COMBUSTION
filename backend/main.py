@@ -58,7 +58,8 @@ class AirEquivalenceRequest(BaseModel):
 class MetrologyRequest(BaseModel):
     power_measurements_kw: List[float]
     target_declared_kw: Optional[float] = None
-    tolerance_pct: float = 8.0
+    tolerance_pct: Optional[float] = None
+    d_inj_mm: float = 1.0
 
 
 @app.get("/")
@@ -98,6 +99,7 @@ def run_full_simulation(req: SimulationRequest):
         emissions["co_neutral_ppm"],
         emissions["efficiency_pct"],
         stability["code"],
+        req.d_inj_mm,
         req.is_oven
     )
     
@@ -128,7 +130,7 @@ def run_metrology_analysis(req: MetrologyRequest):
     """
     try:
         return analyze_repeatability_and_labeling(
-            req.power_measurements_kw, req.target_declared_kw, req.tolerance_pct
+            req.power_measurements_kw, req.target_declared_kw, req.tolerance_pct, req.d_inj_mm
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

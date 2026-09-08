@@ -5,6 +5,7 @@ Análisis de Repetibilidad, Reproducibilidad (R&R), Grubbs Outliers y Rotulado.
 
 import math
 from typing import List, Dict, Any, Optional
+from backend.normativity.ntc2832_rules import get_ntc_power_tolerance
 
 
 def grubb_outlier_test(data: List[float], alpha: float = 0.05) -> Dict[str, Any]:
@@ -50,11 +51,12 @@ def grubb_outlier_test(data: List[float], alpha: float = 0.05) -> Dict[str, Any]
 def analyze_repeatability_and_labeling(
     power_measurements_kw: List[float],
     target_declared_kw: Optional[float] = None,
-    tolerance_pct: float = 8.0
+    tolerance_pct: Optional[float] = None,
+    d_inj_mm: float = 1.0
 ) -> Dict[str, Any]:
     """
     Analiza una serie de mediciones de potencia en laboratorio,
-    evalúa la variabilidad estadística y recomienda el valor a rotular según NTC 2832-1.
+    evalúa la variabilidad estadística y recomienda el valor a rotular según NTC 2832-1 (Numeral 7.3.1.2.1.2).
     """
     outlier_res = grubb_outlier_test(power_measurements_kw)
     clean_data = outlier_res["cleaned_data"]
@@ -74,14 +76,17 @@ def analyze_repeatability_and_labeling(
     
     # Recomendación del valor nominal a rotular en la placa
     recommended_label_kw = round(mean_val, 2)
-    min_allowed_kw = round(recommended_label_kw * (1.0 - (tolerance_pct / 100.0)), 3)
-    max_allowed_kw = round(recommended_label_kw * (1.0 + (tolerance_pct / 100.0)), 3)
+    tol_rec = get_ntc_power_tolerance(recommended_label_kw, d_inj_mm)
+    min_allowed_kw = round(recommended_label_kw - tol_rec["delta_kw"], 3)
+    max_allowed_kw = round(recommended_label_kw + tol_rec["delta_kw"], 3)
     
     # Verificación de cumplimiento si hay un valor declarado objetivo
     target_compliant = True
+    target_tol_info = None
     if target_declared_kw is not None:
-        lower_bound = target_declared_kw * (1.0 - (tolerance_pct / 100.0))
-        upper_bound = target_declared_kw * (1.0 + (tolerance_pct / 100.0))
+        target_tol_info = get_ntc_power_tolerance(target_declared_kw, d_inj_mm)
+        lower_bound = target_declared_kw - target_tol_info["delta_kw"]
+        upper_bound = target_declared_kw + target_tol_info["delta_kw"]
         if mean_val < lower_bound or mean_val > upper_bound:
             target_compliant = False
 
@@ -92,8 +97,10 @@ def analyze_repeatability_and_labeling(
         "cv_repeatability_pct": round(cv_pct, 2),
         "expanded_uncertainty_95_kw": round(u_expanded_95, 4),
         "recommended_label_power_kw": recommended_label_kw,
+        "tolerance_label": tol_rec["label"],
+        "tolerance_delta_kw": round(tol_rec["delta_kw"], 4),
         "tolerance_band_kw": [min_allowed_kw, max_allowed_kw],
         "target_declared_kw": target_declared_kw,
-        "ntc2832_8pct_compliant": target_compliant,
+        "ntc2832_compliant": target_compliant,
         "outlier_analysis": outlier_res
     }

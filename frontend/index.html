@@ -292,8 +292,8 @@
 
         <div class="bg-zinc-900 p-4 sm:p-5 rounded-md border border-zinc-800">
           <h3 id="chartPowerTitle" class="text-xs sm:text-sm font-bold text-zinc-300 mb-3">📈 Curva de Sensibilidad: Potencia vs. Presión (Tolerancia NTC 2832-1)</h3>
-          <div class="w-full relative">
-            <canvas id="chartPower" height="150"></canvas>
+          <div class="w-full relative h-64 sm:h-72">
+            <canvas id="chartPower"></canvas>
           </div>
         </div>
 
@@ -586,7 +586,7 @@
       <div class="p-4 bg-zinc-950 rounded-md border border-violet-500/30">
         <h3 class="text-xs font-bold font-mono tracking-wide text-violet-300 mb-1">Recomendación para Placa de Características del Producto:</h3>
         <p class="text-xs sm:text-sm text-zinc-300">Se recomienda declarar una Potencia Nominal de: <span id="metRecLabel" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono">0 kW</span></p>
-        <p class="text-xs text-zinc-500 mt-1">Banda de Tolerancia Permisible NTC 2832-1 (±8%): <span id="metBand" class="font-mono">0 - 0 kW</span></p>
+        <p class="text-xs text-zinc-500 mt-1">Banda de Tolerancia Permisible NTC 2832-1 (<span id="metTolLabel">±8.0%</span>): <span id="metBand" class="font-mono">0 - 0 kW</span></p>
       </div>
 
       <div class="bg-zinc-900 p-4 sm:p-6 rounded-md border border-amber-500/30 space-y-4">
@@ -862,18 +862,69 @@
         data: {
           labels: [],
           datasets: [
-            { label: 'Potencia Simulada (kW)', data: [], borderColor: '#22d3ee', backgroundColor: '#22d3ee22', fill: true },
-            { label: 'Límite Superior (+8%)', data: [], borderColor: '#fb7185', borderDash: [5, 5] },
-            { label: 'Límite Inferior (-8%)', data: [], borderColor: '#fb7185', borderDash: [5, 5] }
+            {
+              label: 'Potencia Simulada (kW)',
+              data: [],
+              borderColor: '#22d3ee',
+              backgroundColor: 'rgba(34, 211, 238, 0.12)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#22d3ee'
+            },
+            {
+              label: 'Límite Superior NTC',
+              data: [],
+              borderColor: '#fb7185',
+              borderDash: [6, 4],
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+              tension: 0
+            },
+            {
+              label: 'Límite Inferior NTC',
+              data: [],
+              borderColor: '#fb7185',
+              borderDash: [6, 4],
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+              tension: 0
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 10, family: "'IBM Plex Mono', monospace" } } } },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#a1a1aa',
+                font: { size: 10, family: "'IBM Plex Mono', monospace" }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return ' ' + c.dataset.label + ': ' + Number(c.parsed.y).toFixed(2) + ' kW';
+                }
+              }
+            }
+          },
           scales: {
-            x: { ticks: { color: '#71717a', font: { size: 9 } }, grid: { color: '#27272a' }, title: { display: true, text: 'Presión de Suministro (mbar)', color: '#71717a', font: { size: 10 } } },
-            y: { ticks: { color: '#71717a', font: { size: 9 } }, grid: { color: '#27272a' }, title: { display: true, text: 'Potencia Nominal (kW)', color: '#71717a', font: { size: 10 } } }
+            x: {
+              ticks: { color: '#71717a', font: { size: 9 } },
+              grid: { color: '#27272a' },
+              title: { display: true, text: 'Presión de Suministro (mbar)', color: '#a1a1aa', font: { size: 10 } }
+            },
+            y: {
+              ticks: { color: '#71717a', font: { size: 9 } },
+              grid: { color: '#27272a' },
+              title: { display: true, text: 'Potencia Nominal (kW)', color: '#a1a1aa', font: { size: 10 } }
+            }
           }
         }
       });
@@ -1074,7 +1125,7 @@
       }
 
       drawFlame(lambdaPrim, vPort, gas.sl);
-      updateChart(burnerType, dInj, cd, gas, pDecl, pAtm, dThroat, lTube, kc);
+      updateChart(dInj, cd, gas, pDecl);
     }
 
     function drawFlame(lambda, vPort, sl) {
@@ -1122,7 +1173,7 @@
       }
     }
 
-    function updateChart(burnerType, dInj, cd, gas, pDecl, pAtm, dThroat, lTube, kc) {
+    function updateChart(dInj, cd, gas, pDecl) {
       if (!powerChart) return;
 
       const pSupInput = parseFloat(document.getElementById('pSup').value);
@@ -1159,14 +1210,15 @@
         const ntcF = ntcCorrectionFactor(P_STD_MBAR, p, T_STD_C);
         const qStd = areaInj * cd * vIdeal * ntcF * 3600.0;
         const pKw = qStd * gas.pcs * powerCorrectionFactor;
-        powers.push(pKw.toFixed(2));
-        upper.push(tol.upperKw.toFixed(2));
-        lower.push(tol.lowerKw.toFixed(2));
+        powers.push(parseFloat(pKw.toFixed(2)));
+        upper.push(parseFloat(tol.upperKw.toFixed(2)));
+        lower.push(parseFloat(tol.lowerKw.toFixed(2)));
       });
 
       const titleEl = document.getElementById('chartPowerTitle');
       if (titleEl) {
-        titleEl.innerText = '📈 Curva de Sensibilidad: Potencia vs. Presión (Tol NTC ' + tol.label + ')';
+        const refLabel = hasDeclared ? ('sobre Pn ' + refPowerKw.toFixed(2) + ' kW') : ('ref. Pn sim ' + refPowerKw.toFixed(2) + ' kW');
+        titleEl.innerText = '📈 Curva de Sensibilidad: Potencia vs. Presión (Tol NTC ' + tol.label + ' ' + refLabel + ')';
       }
 
       powerChart.data.labels = pressures;
@@ -1295,7 +1347,7 @@
       document.getElementById('doeOptInj').innerText = optInj.toFixed(2) + " mm";
       document.getElementById('doeOptPres').innerText = optPres.toFixed(1) + " mbar";
       document.getElementById('doeOptPower').innerText = optPower.toFixed(2) + " kW";
-      document.getElementById('doeOptMargin').innerText = "±" + maxSafetyMargin.toFixed(1) + "% de margen";
+      document.getElementById('doeOptMargin').innerText = "+" + maxSafetyMargin.toFixed(2) + " kW margen NTC";
       document.getElementById('doeRobustnessText').innerText = `El ${greenPct}% de la ventana está en Zona Verde NTC 2832 (Arquitectura ${archLabel}).`;
     }
 
@@ -1495,6 +1547,8 @@
         document.getElementById('metCV').innerText = '—';
         document.getElementById('metU').innerText = '—';
         document.getElementById('metRecLabel').innerText = '—';
+        const tolLblEl = document.getElementById('metTolLabel');
+        if (tolLblEl) tolLblEl.innerText = 'NTC 2832-1';
         document.getElementById('metBand').innerText = '—';
         return;
       }
@@ -1506,12 +1560,16 @@
       const cv = (std / mean) * 100.0;
       const u95 = 2.0 * (std / Math.sqrt(raw.length));
       const recLabel = parseFloat(mean.toFixed(2));
+      const dInjCurrent = parseFloat(document.getElementById('dInj').value) || 1.0;
+      const tolMet = getNtcPowerTolerance(recLabel, dInjCurrent);
 
       document.getElementById('metMean').innerText = mean.toFixed(3) + " kW";
       document.getElementById('metCV').innerText = cv.toFixed(2) + " %";
       document.getElementById('metU').innerText = "± " + u95.toFixed(3) + " kW";
       document.getElementById('metRecLabel').innerText = recLabel.toFixed(2) + " kW";
-      document.getElementById('metBand').innerText = (recLabel * 0.92).toFixed(2) + " kW - " + (recLabel * 1.08).toFixed(2) + " kW";
+      const tolLblEl = document.getElementById('metTolLabel');
+      if (tolLblEl) tolLblEl.innerText = tolMet.label;
+      document.getElementById('metBand').innerText = tolMet.lowerKw.toFixed(2) + " kW - " + tolMet.upperKw.toFixed(2) + " kW";
     }
 
     function estimateKcFromCO(coPpm, gas, dInj, dThroat, hFactor) {
